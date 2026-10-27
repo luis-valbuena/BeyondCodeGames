@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>UNDER SURVEILLANCE — Automated Test Suite</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body style="background: #111; color: #eee; font-family: monospace; padding: 20px;">
+  <h1>UNDER SURVEILLANCE — Test Suite Runner</h1>
+  <div id="test-results">Iniciando pruebas...</div>
+
+  <!-- Include all game scripts in order -->
+  <script src="js/audio.js"></script>
+  <script src="js/cases-data.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/pixel-renderer.js"></script>
+  <script src="js/lina-system.js"></script>
+  <script src="js/narrative.js"></script>
+
+  <script>
+    const results = [];
+    function assert(desc, condition) {
+      results.push({ desc, pass: Boolean(condition) });
+    }
+
+    try {
+      // Test 1: Data integrity & cases count
+      assert("Prueba 1: Existen 7 casos definidos", window.GAME_CASES && window.GAME_CASES.length === 7);
+
+      // Test 2: At least 3 documents per person
+      const allHaveAtLeast3Docs = window.GAME_CASES.every(c => c.documents && c.documents.length >= 3);
+      assert("Prueba 2: Cada caso dispone de al menos 3 documentos verificables", allHaveAtLeast3Docs);
+
+      // Test 3: LINA evaluation deterministic format
+      const validLinaEvals = window.GAME_CASES.every(c => 
+        ['BAJO', 'MEDIO', 'ALTO'].includes(c.linaEvaluation.risk) &&
+        ['ADMITIR', 'RECHAZAR'].includes(c.linaEvaluation.recommendation) &&
+        typeof c.linaEvaluation.explanation === 'string' &&
+        c.linaEvaluation.explanation.length > 20
+      );
+      assert("Prueba 3: Evaluaciones de LINA son deterministas, estructuradas y justificadas", validLinaEvals);
+
+      // Test 4: Visual perception alteration configured in at least 2 cases
+      const casesWithVisualAlteration = window.GAME_CASES.filter(c => c.linaEvaluation.altersPerception);
+      assert("Prueba 4: Al menos 2 casos activan la alteración de la percepción (Casos: " + casesWithVisualAlteration.map(c => c.id).join(', ') + ")", casesWithVisualAlteration.length >= 2);
+
+      // Test 5: Sound engine initialization and toggle mute
+      assert("Prueba 5: Motor de audio inicializado y función de silencio operativa", typeof window.soundEngine.toggleMute === 'function');
+      const mute1 = window.soundEngine.toggleMute();
+      const mute2 = window.soundEngine.toggleMute();
+      assert("Prueba 6: Conmutación de silencio no bloquea la ejecución de audio", mute1 !== mute2);
+
+      // Test 7: Game state resets and storage
+      window.gameState.clearSave();
+      assert("Prueba 7: Estado de juego inicializa contadores a cero", window.gameState.currentCaseIndex === 0 && window.gameState.admittedCount === 0);
+
+      // Test 8: Document examination tracking
+      window.gameState.examineDocument('case-1', 'doc-1-dni');
+      const caseState = window.gameState.getCaseState('case-1');
+      assert("Prueba 8: Registro de examen de documento marca 'REVISADO'", caseState.docsExamined.includes('doc-1-dni'));
+
+      // Test 9: Irreversible decision registration
+      const auditAdmit = window.gameState.recordDecision('ADMIT');
+      assert("Prueba 9: Decisión de ADMITIR registrada en acta irreversible", auditAdmit && auditAdmit.decision === 'ADMIT' && window.gameState.admittedCount === 1);
+      
+      // Attempting double decision on same case should fail
+      const auditSecond = window.gameState.recordDecision('REJECT');
+      assert("Prueba 10: Imposibilidad de alterar una decisión ya registrada", auditSecond === null && window.gameState.admittedCount === 1);
+
+      // Test 11: Endings Engine — Test All 4 Routes
+      // Ending 1: Obediencia (Protocolo Absoluto)
+      const mockStateE1 = {
+        followedLinaCount: 6,
+        questionedLinaCount: 1,
+        finalDecision: 'REJECT',
+        discoveredSecretsCount: 0,
+        unjustifiedRejects: 4,
+        admittedCount: 2,
+        rejectedCount: 5
+      };
+      const e1 = window.NARRATIVE.calculateEnding(mockStateE1);
+      assert("Prueba 11: Final 1 (Obediencia) se alcanza correctamente", e1.id === 'ending-1');
+
+      // Ending 3: Resistencia y Responsabilidad
+      const mockStateE3 = {
+        followedLinaCount: 2,
+        questionedLinaCount: 5,
+        finalDecision: 'ADMIT',
+        discoveredSecretsCount: 2,
+        unjustifiedRejects: 0,
+        admittedCount: 6,
+        rejectedCount: 1
+      };
+      const e3 = window.NARRATIVE.calculateEnding(mockStateE3);
+      assert("Prueba 12: Final 3 (Resistencia y Responsabilidad) se alcanza con Inés admitida", e3.id === 'ending-3');
+
+      // Ending 4: Complicidad Consciente
+      const mockStateE4 = {
+        followedLinaCount: 4,
+        questionedLinaCount: 3,
+        finalDecision: 'REJECT',
+        discoveredSecretsCount: 2,
+        unjustifiedRejects: 2,
+        admittedCount: 3,
+        rejectedCount: 4
+      };
+      const e4 = window.NARRATIVE.calculateEnding(mockStateE4);
+      assert("Prueba 13: Final 4 (Complicidad Consciente) se alcanza con secretos + rechazo de Inés", e4.id === 'ending-4');
+
+      // Ending 2: Cuestionamiento sin cambio institucional
+      const mockStateE2 = {
+        followedLinaCount: 3,
+        questionedLinaCount: 3,
+        finalDecision: 'REJECT',
+        discoveredSecretsCount: 0,
+        unjustifiedRejects: 1,
+        admittedCount: 3,
+        rejectedCount: 4
+      };
+      const e2 = window.NARRATIVE.calculateEnding(mockStateE2);
+      assert("Prueba 14: Final 2 (Cuestionamiento sin cambio) se alcanza con ambivalencia", e2.id === 'ending-2');
+
+      // Test 15: Secret documents content
+      assert("Prueba 15: Archivos de auditoría de LINA contienen evidencias sobre el sesgo", 
+        window.NARRATIVE.intermissions[2].hasSecret && 
+        window.NARRATIVE.intermissions[3].hasSecret &&
+        window.NARRATIVE.intermissions[3].secretSnippet.includes("35%")
+      );
+
+      // Output DOM
+      let html = "<h2>Resultados de Verificación Automatizada:</h2><ul>";
+      let allPassed = true;
+      results.forEach(r => {
+        if (!r.pass) allPassed = false;
+        html += `<li style="color: ${r.pass ? '#55c97d' : '#e55353'}">${r.pass ? '✓ PASS' : '✗ FAIL'}: ${r.desc}</li>`;
+      });
+      html += `</ul><h3>${allPassed ? 'ESTADO: TODAS LAS PRUEBAS SUPERADAS EXITOSAMENTE (15/15)' : 'ESTADO: FALLOS DETECTADOS'}</h3>`;
+      document.getElementById('test-results').innerHTML = html;
+
+    } catch (err) {
+      document.getElementById('test-results').innerHTML = `<h2 style="color:red">ERROR CRÍTICO EN SUITE: ${err.message}</h2><pre>${err.stack}</pre>`;
+    }
+  </script>
+</body>
+</html>

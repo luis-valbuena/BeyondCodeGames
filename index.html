@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>UNDER SURVEILLANCE — Beyond Code Games</title>
+  <meta name="description" content="Simulador narrativo de inspección y toma de decisiones en un puesto de control distópico asistido por la IA LINA.">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Main Game 16:9 Viewport Container -->
+  <div id="game-wrapper">
+    <!-- CRT Filter Overlay -->
+    <div class="crt-overlay"></div>
+
+    <!-- Notification Toast -->
+    <div id="game-toast">Notificación del sistema</div>
+
+    <!-- Persistent Top Status Bar (Visible in Gameplay) -->
+    <header id="top-bar">
+      <div class="top-bar-left">
+        <span class="badge-tag highlight" id="status-shift-num">TURNO 1 / 4</span>
+        <span class="badge-tag" id="status-case-progress">CASO 1 DE 7</span>
+      </div>
+      <div class="top-bar-center">
+        <span class="badge-tag alert">CIUDAD DE ASTER // PUESTO DE ACCESO NORTE</span>
+      </div>
+      <div class="top-bar-right">
+        <button class="icon-btn btn-toggle-sound" title="Alternar audio (M)">🔊 SONIDO: ON [M]</button>
+      </div>
+    </header>
+
+    <!-- ====================================================================
+         SCREEN 1: TITLE SCREEN
+         ==================================================================== -->
+    <section id="title-screen" class="screen active">
+      <canvas id="title-canvas"></canvas>
+
+      <div class="title-content">
+        <div class="title-header">
+          <div class="studio-name">BEYOND CODE GAMES PRESENTA</div>
+          <h1>UNDER SURVEILLANCE</h1>
+          <p class="title-subtitle">
+            Un simulador narrativo sobre la confianza ciega en algoritmos predictivos, el peso de la obediencia y la ilusión de la objetividad tecnológica.
+          </p>
+        </div>
+      </div>
+
+      <div class="title-menu">
+        <button id="btn-new-game" class="btn-pixel">INICIAR TURNO</button>
+        <button id="btn-continue-game" class="btn-pixel" style="display: none; border-color: var(--col-violet);">CONTINUAR PARTIDA</button>
+        <button id="btn-how-to-play" class="btn-pixel" style="background: transparent; border-color: var(--col-dark-blue-light);">CÓMO JUGAR</button>
+        <button class="icon-btn btn-toggle-sound" style="margin-top: 6px;">🔊 SONIDO: ON [M]</button>
+      </div>
+
+      <div class="title-footer">
+        <span>ASTER SECURITY OS v3.4 // DIRECTIVA DE CONTROL PERIMETRAL</span>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SCREEN 2: NARRATIVE INTRO / BRIEFING
+         ==================================================================== -->
+    <section id="intro-screen" class="screen">
+      <div class="briefing-box">
+        <div class="briefing-header">
+          <h2 id="intro-title">PROTOCOLO DE ENTRADA</h2>
+          <span class="briefing-speaker" id="intro-speaker">SUPERVISIÓN // JOSÉ</span>
+        </div>
+        <div class="briefing-body" id="intro-body">
+          <!-- Populated dynamically via narrative.js -->
+        </div>
+        <div class="briefing-actions">
+          <button id="btn-start-intro" class="btn-pixel">INGRESAR A LA CABINA</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SCREEN 3: MAIN GAMEPLAY (INSPECTION BOOTH)
+         ==================================================================== -->
+    <section id="gameplay-screen" class="screen">
+      <main id="booth-workspace">
+        
+        <!-- LEFT PANEL: Person CCTV Viewport & Biometrics -->
+        <div class="panel-left">
+          <div class="camera-header">
+            <span>OPTICAL CAM-01 [PUERTA]</span>
+            <div class="cam-rec">
+              <span class="rec-dot"></span> REC
+            </div>
+          </div>
+
+          <div class="person-viewport">
+            <canvas id="person-canvas"></canvas>
+            
+            <!-- Perception Alteration Layers -->
+            <div id="perception-overlay" class="perception-overlay"></div>
+            <div id="threat-reticle" class="threat-reticle">
+              <span class="reticle-label">LINA: ANOMALÍA BIOMÉTRICA</span>
+              <span class="reticle-label" style="align-self: flex-end; color: var(--col-violet);">PERFIL HOSTIL</span>
+            </div>
+          </div>
+
+          <div class="person-bio-card">
+            <div class="bio-name" id="bio-name">Nombre de Persona</div>
+            <div class="bio-sub" id="bio-age-origin">30 años | Origen</div>
+            <div class="bio-statement" id="bio-statement">"Declaración personal..."</div>
+          </div>
+        </div>
+
+        <!-- CENTER PANEL: Physical Desk & Documents Tray -->
+        <div class="panel-center">
+          <div class="center-title">
+            <span>EXPEDIENTES Y EVIDENCIAS</span>
+            <span style="font-size: 10px; color: #a4b3cf;">[TECLAS 1-4]</span>
+          </div>
+
+          <div class="docs-tray" id="docs-tray">
+            <!-- Document cards populated dynamically -->
+          </div>
+        </div>
+
+        <!-- RIGHT PANEL: LINA AI Terminal -->
+        <div class="panel-right">
+          <div class="terminal-header">
+            <span class="lina-brand">TERMINAL LINA v3.4</span>
+            <span class="lina-status">● CONECTADO</span>
+          </div>
+
+          <div class="lina-terminal-screen" id="lina-terminal-screen">
+            <!-- Telemetry Scanning Bar -->
+            <div class="scan-progress-box" id="scan-progress-box">
+              <div class="telemetry-text" id="telemetry-text">Iniciando escaneo...</div>
+              <div class="scan-progress-bar">
+                <div class="scan-progress-fill" id="scan-progress-fill"></div>
+              </div>
+            </div>
+
+            <!-- Analysis Output -->
+            <div class="lina-result-box" id="lina-result-box">
+              <div style="color: #6a7c99; font-style: italic; padding: 10px; text-align: center;">
+                [LINA v3.4 EN ESPERA]<br>
+                Haga clic en 'CONSULTAR A LINA' para procesar datos biométricos y antecedentes.
+              </div>
+            </div>
+          </div>
+
+          <button id="btn-consult-lina" class="btn-lina">CONSULTAR A LINA [L]</button>
+        </div>
+
+      </main>
+
+      <!-- BOTTOM DOCK: Irreversible Decisions -->
+      <footer id="bottom-dock">
+        <div class="dock-status-msg">
+          <span>⚠️ ADVERTENCIA: Toda decisión queda registrada en el acta de guardia y es IRREVERSIBLE.</span>
+        </div>
+        <div class="decision-buttons">
+          <button id="btn-decision-admit" class="btn-decision btn-admit">ADMITIR [A]</button>
+          <button id="btn-decision-reject" class="btn-decision btn-reject">RECHAZAR [R]</button>
+        </div>
+      </footer>
+    </section>
+
+    <!-- ====================================================================
+         SCREEN 4: INTERMISSION (Between shifts & discoveries)
+         ==================================================================== -->
+    <section id="intermission-screen" class="screen">
+      <div class="briefing-box">
+        <div class="briefing-header">
+          <h2 id="intermission-title">FIN DE TURNO</h2>
+          <span class="briefing-speaker" id="intermission-speaker">SUPERVISIÓN // REVISIÓN</span>
+        </div>
+        <div class="briefing-body" id="intermission-body">
+          <!-- Populated dynamically -->
+        </div>
+        <div class="briefing-actions">
+          <button id="btn-view-secret" class="btn-pixel" style="display: none; border-color: var(--col-violet); color: #d1c4e9;">📂 ARCHIVO INTERCEPTADO</button>
+          <button id="btn-advance-shift" class="btn-pixel">SIGUIENTE TURNO</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SCREEN 5: ENDING & AUDIT SCREEN
+         ==================================================================== -->
+    <section id="ending-screen" class="screen">
+      <div class="ending-box">
+        <div id="ending-title-badge" class="ending-title-badge">FINAL ALCANZADO</div>
+        
+        <div class="ending-narrative" id="ending-narrative-text">
+          <!-- Populated dynamically -->
+        </div>
+
+        <div class="ending-stats-grid">
+          <div class="stat-item">
+            <span class="stat-label">PERSONAS ADMITIDAS:</span>
+            <span class="stat-val good" id="stat-admitted">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">PERSONAS RECHAZADAS:</span>
+            <span class="stat-val bad" id="stat-rejected">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">DICTÁMENES DE LINA SEGUIDOS:</span>
+            <span class="stat-val" id="stat-lina-followed">0 / 7</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">DICTÁMENES CUESTIONADOS:</span>
+            <span class="stat-val warn" id="stat-lina-questioned">0 / 7</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">RECHAZOS INJUSTIFICADOS:</span>
+            <span class="stat-val bad" id="stat-unjustified-rejects">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">ARCHIVOS SECRETOS HALLADOS:</span>
+            <span class="stat-val highlight" id="stat-secrets-found">0 / 2</span>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 14px;">
+          <button id="btn-restart-ending" class="btn-pixel">INICIAR NUEVA PARTIDA</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         MODALS
+         ==================================================================== -->
+    
+    <!-- 1. Document Viewer Modal -->
+    <div id="doc-modal" class="modal-overlay">
+      <div class="doc-sheet">
+        <button class="modal-close-btn" title="Cerrar documento (Esc)">✕</button>
+        <div class="doc-header-seal">
+          <div class="seal-title">
+            <h3 id="modal-doc-title">Documento Oficial</h3>
+            <span id="modal-doc-type">Tipo y Expediente</span>
+          </div>
+          <div style="font-size: 11px; font-weight: bold; color: #433e36;">REPUBLICA DE ASTER</div>
+        </div>
+        <div class="doc-body-content" id="modal-doc-fields">
+          <!-- Fields inserted here -->
+        </div>
+        <div class="doc-stamp" id="modal-doc-stamp">SELLO OFICIAL</div>
+      </div>
+    </div>
+
+    <!-- 2. Secret Archives Modal -->
+    <div id="secret-modal" class="modal-overlay">
+      <div class="terminal-secret-box">
+        <button class="modal-close-btn" title="Cerrar archivo (Esc)">✕</button>
+        <div class="secret-title" id="secret-title-label">ARCHIVO CONFIDENCIAL DESCLASIFICADO</div>
+        <pre class="secret-content" id="secret-body-content"></pre>
+        <div style="font-size: 11px; color: #8c9eb9;">
+          * Este registro ha sido almacenado permanentemente en tu cuaderno de incidencias.
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. How to Play Modal -->
+    <div id="help-modal" class="modal-overlay">
+      <div class="help-card">
+        <button class="modal-close-btn" title="Cerrar ayuda (Esc)">✕</button>
+        <h2>CÓMO JUGAR // MANUAL DEL PUESTO</h2>
+        <ul>
+          <li><strong>1. Inspección de personas:</strong> Cada persona que llega al puesto presenta al menos 3 documentos oficiales (identificación, antecedentes, órdenes de trabajo, certificados médicos, etc.). Haz clic en ellos o pulsa las teclas <strong>[1], [2], [3] o [4]</strong> para leerlos con detenimiento.</li>
+          <li><strong>2. Consulta a LINA [L]:</strong> Pulsa el botón del terminal para que la inteligencia artificial analice los datos biométricos y te asigne un nivel de riesgo (BAJO, MEDIO o ALTO) y una recomendación (ADMITIR o RECHAZAR).</li>
+          <li><strong>3. Alteración de la percepción:</strong> Presta atención a la cámara CCTV. LINA puede alterar la iluminación, las sombras y la expresión de una persona tras la consulta para influir en tu decisión. <em>¿Es realmente una amenaza o es la máquina manipulando tu juicio?</em></li>
+          <li><strong>4. Decisión irreversible:</strong> Elige entre <strong>ADMITIR [A]</strong> o <strong>RECHAZAR [R]</strong>. No hay botón de deshacer ni segundas oportunidades. Tus decisiones determinan las vidas de las personas y te conducirán a uno de los <strong>cuatro finales posibles</strong>.</li>
+          <li><strong>5. Atajos de teclado:</strong> [1-4] Abrir documentos | [L] Consultar a LINA | [A] Admitir | [R] Rechazar | [M] Silenciar audio | [Esc] Cerrar ventanas.</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Scripts in strict dependency order -->
+  <script src="js/audio.js"></script>
+  <script src="js/cases-data.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/pixel-renderer.js"></script>
+  <script src="js/lina-system.js"></script>
+  <script src="js/narrative.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
