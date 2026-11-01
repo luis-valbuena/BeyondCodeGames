@@ -83,7 +83,7 @@
     <section id="gameplay-screen" class="screen">
       <main id="booth-workspace">
         
-        <!-- LEFT PANEL: Person CCTV Viewport & Biometrics -->
+        <!-- LEFT PANEL: Person CCTV Viewport & Spacious Dialogue Console -->
         <div class="panel-left">
           <div class="camera-header">
             <span>OPTICAL CAM-01 [PUERTA]</span>
@@ -103,30 +103,74 @@
             </div>
           </div>
 
-          <div class="person-bio-card">
-            <div class="bio-name" id="bio-name">Nombre de Persona</div>
-            <div class="bio-sub" id="bio-age-origin">30 años | Origen</div>
-            <div class="bio-statement" id="bio-statement">"Declaración personal..."</div>
+          <!-- SP SPACIOUS VISITOR CONVERSATION CONSOLE -->
+          <div class="visitor-dialogue-console" id="visitor-dialogue-console">
+            <div class="dialogue-header">
+              <div class="dialogue-portrait-wrap">
+                <canvas id="dialogue-portrait-canvas" width="72" height="72"></canvas>
+              </div>
+              <div class="dialogue-meta">
+                <div class="dialogue-speaker-name" id="dialogue-speaker-name">Nombre de Persona</div>
+                <div class="dialogue-speaker-sub" id="dialogue-speaker-sub">Edad | Ocupación | Origen</div>
+                <div class="dialogue-phase-tag" id="dialogue-phase-tag">FASE 1/7: PRESENTACIÓN</div>
+              </div>
+            </div>
+
+            <div class="dialogue-body">
+              <div class="dialogue-text-content" id="dialogue-text-content">
+                <!-- Typewriter text inserted here -->
+              </div>
+            </div>
+
+            <div class="dialogue-actions-bar">
+              <button id="btn-dialogue-advance" class="btn-dialogue-advance" title="Avanzar intervención (Espacio)">
+                CONTINUAR ▶
+              </button>
+            </div>
           </div>
         </div>
 
-        <!-- CENTER PANEL: Physical Desk & Documents Tray -->
+        <!-- CENTER PANEL: Physical Desk & Progressive Documents Tray -->
         <div class="panel-center">
           <div class="center-title">
-            <span>EXPEDIENTES Y EVIDENCIAS</span>
-            <span style="font-size: 10px; color: #a4b3cf;">[TECLAS 1-4]</span>
+            <span>EXPEDIENTES Y DOCUMENTOS</span>
+            <span style="font-size: 10px; color: #a4b3cf;">[TECLAS 1-3]</span>
+          </div>
+
+          <div class="docs-tray-info" id="docs-tray-info">
+            <span id="docs-count-label">DOCUMENTOS ENTREGADOS: 0 / 3</span>
+            <span id="docs-phase-status" class="status-waiting">EN FASE DE PRESENTACIÓN</span>
           </div>
 
           <div class="docs-tray" id="docs-tray">
-            <!-- Document cards populated dynamically -->
+            <!-- Standardized Document Cards delivered progressively:
+                 1. Documento de identidad (Phase 2)
+                 2. Registro de trabajo (Phase 4)
+                 3. Certificado de seguridad (Phase 6) -->
+          </div>
+
+          <div class="desk-inspection-instructions" id="desk-inspection-instructions">
+            <strong>PROCEDIMIENTO DE INSPECCIÓN OBLIGATORIO:</strong>
+            <p>1. Escuche la declaración completa del visitante a lo largo de las 7 fases.</p>
+            <p>2. Reciba cada uno de los 3 documentos oficiales entregados en su mesa.</p>
+            <p>3. En la Fase 7, examine cada expediente en detalle y consulte el dictamen biométrico de LINA.</p>
+            <p>4. Emita su resolución final e irreversible mediante [ADMITIR] o [RECHAZAR].</p>
           </div>
         </div>
 
-        <!-- RIGHT PANEL: LINA AI Terminal -->
+        <!-- RIGHT PANEL: LINA AI Terminal with Animated Interactive Avatar -->
         <div class="panel-right">
           <div class="terminal-header">
             <span class="lina-brand">TERMINAL LINA v3.4</span>
             <span class="lina-status">● CONECTADO</span>
+          </div>
+
+          <!-- Interactive Central LINA Avatar -->
+          <div class="lina-avatar-container" id="lina-avatar-container" title="Haga clic sobre el avatar de LINA para iniciar análisis biométrico">
+            <canvas id="lina-avatar-canvas" width="160" height="120"></canvas>
+            <div id="lina-avatar-badge" class="lina-avatar-badge available">
+              ⚡ ANÁLISIS DISPONIBLE [CLIC AQUÍ O PULSA L]
+            </div>
           </div>
 
           <div class="lina-terminal-screen" id="lina-terminal-screen">
@@ -140,9 +184,9 @@
 
             <!-- Analysis Output -->
             <div class="lina-result-box" id="lina-result-box">
-              <div style="color: #6a7c99; font-style: italic; padding: 10px; text-align: center;">
+              <div style="color: #6a7c99; font-style: italic; padding: 8px; text-align: center; font-size: 11px;">
                 [LINA v3.4 EN ESPERA]<br>
-                Haga clic en 'CONSULTAR A LINA' para procesar datos biométricos y antecedentes.
+                Haga clic sobre el avatar superior o pulse [L] para procesar datos biométricos y antecedentes.
               </div>
             </div>
           </div>
@@ -154,18 +198,89 @@
 
       <!-- BOTTOM DOCK: Irreversible Decisions -->
       <footer id="bottom-dock">
-        <div class="dock-status-msg">
-          <span>⚠️ ADVERTENCIA: Toda decisión queda registrada en el acta de guardia y es IRREVERSIBLE.</span>
+        <div class="dock-status-msg" id="dock-status-msg">
+          <span>⚠️ ADVERTENCIA: Debe completar las 7 fases de la presentación antes de emitir una decisión.</span>
         </div>
         <div class="decision-buttons">
-          <button id="btn-decision-admit" class="btn-decision btn-admit">ADMITIR [A]</button>
-          <button id="btn-decision-reject" class="btn-decision btn-reject">RECHAZAR [R]</button>
+          <button id="btn-decision-admit" class="btn-decision btn-admit" disabled>ADMITIR [A]</button>
+          <button id="btn-decision-reject" class="btn-decision btn-reject" disabled>RECHAZAR [R]</button>
         </div>
       </footer>
     </section>
 
     <!-- ====================================================================
-         SCREEN 4: INTERMISSION (Between shifts & discoveries)
+         SCREEN 4: DAY AUDIT SUMMARY SCREEN (INFORME DE CIERRE DEL DÍA)
+         ==================================================================== -->
+    <section id="day-summary-screen" class="screen">
+      <div class="day-summary-box">
+        <div class="day-summary-header">
+          <div>
+            <h2 id="day-summary-title">INFORME INSTITUCIONAL DE CIERRE // JORNADA 1</h2>
+            <span class="day-summary-ref" id="day-summary-ref">EXP-CIERRE-AST-2026 // ESTRICTAMENTE CONFIDENCIAL</span>
+          </div>
+          <div class="day-summary-badge" id="day-summary-organism">
+            CONSEJO SUPREMO DE SEGURIDAD
+          </div>
+        </div>
+
+        <div class="day-summary-grid" id="day-summary-stats-grid">
+          <!-- Dynamically populated statistics from gameState -->
+        </div>
+
+        <div class="day-summary-incidents-box">
+          <div class="incidents-title">REGISTRO DE INCIDENCIAS Y NOVEDADES EN LA ESCLUSA:</div>
+          <ul id="day-summary-incidents-list" class="incidents-list">
+            <!-- Incidents populated dynamically -->
+          </ul>
+        </div>
+
+        <div class="day-summary-footer">
+          <div class="doc-stamp" id="day-summary-stamp">JORNADA AUDITADA</div>
+          <button id="btn-proceed-to-boss" class="btn-pixel">IR AL DESPACHO DE SUPERVISIÓN ▶</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SCREEN 5: BOSS CONVERSATION SCENE (DESPACHO DE JOSÉ)
+         ==================================================================== -->
+    <section id="boss-scene-screen" class="screen">
+      <div class="boss-scene-wrapper">
+        <div class="boss-office-viewport">
+          <canvas id="boss-canvas"></canvas>
+          <div class="boss-office-overlay">
+            <span class="badge-tag highlight">DESPACHO DE SUPERVISIÓN // PISO 24</span>
+            <span class="badge-tag alert" id="boss-shift-indicator">FIN DEL TURNO 1</span>
+          </div>
+        </div>
+
+        <div class="boss-dialogue-console">
+          <div class="boss-dialogue-header">
+            <span class="briefing-speaker" id="boss-speaker-name">SUPERVISOR JOSÉ SERRANO</span>
+            <span class="boss-dialogue-step" id="boss-dialogue-step">INTERVENCIÓN 1 / 4</span>
+          </div>
+
+          <div class="boss-dialogue-body" id="boss-dialogue-text">
+            <!-- Typewriter boss dialogue -->
+          </div>
+
+          <div class="boss-dialogue-actions">
+            <button id="btn-boss-view-secret" class="btn-pixel" style="display: none; border-color: var(--col-violet); color: #d1c4e9;">
+              📂 EXPEDIENTE INTERCEPTADO
+            </button>
+            <button id="btn-boss-advance" class="btn-dialogue-advance">
+              CONTINUAR [ESPACIO] ▶
+            </button>
+            <button id="btn-boss-next-shift" class="btn-pixel" style="display: none;">
+              INICIAR SIGUIENTE TURNO ▶
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SCREEN 6: INTERMISSION (Legacy Compatibility Fallback)
          ==================================================================== -->
     <section id="intermission-screen" class="screen">
       <div class="briefing-box">
@@ -184,7 +299,7 @@
     </section>
 
     <!-- ====================================================================
-         SCREEN 5: ENDING & AUDIT SCREEN
+         SCREEN 7: ENDING & AUDIT SCREEN
          ==================================================================== -->
     <section id="ending-screen" class="screen">
       <div class="ending-box">
@@ -231,32 +346,61 @@
          MODALS
          ==================================================================== -->
     
-    <!-- 1. Document Viewer Modal -->
+    <!-- 1. Authentic Standardized Document Viewer Modal -->
     <div id="doc-modal" class="modal-overlay">
-      <div class="doc-sheet">
+      <div class="doc-sheet" id="doc-sheet-container">
         <button class="modal-close-btn" title="Cerrar documento (Esc)">✕</button>
+        
         <div class="doc-header-seal">
           <div class="seal-title">
             <h3 id="modal-doc-title">Documento Oficial</h3>
             <span id="modal-doc-type">Tipo y Expediente</span>
           </div>
-          <div style="font-size: 11px; font-weight: bold; color: #433e36;">REPUBLICA DE ASTER</div>
+          <div class="seal-republic">
+            <div style="font-size: 11px; font-weight: bold; color: #222c3d; letter-spacing: 1px;">REPÚBLICA DE ASTER</div>
+            <div style="font-size: 9px; color: #625c50;">DIRECCIÓN DE SEGURIDAD Y CONTROL</div>
+          </div>
         </div>
-        <div class="doc-body-content" id="modal-doc-fields">
-          <!-- Fields inserted here -->
+
+        <div class="doc-body-layout">
+          <!-- Pixel Portrait for Identity Documents -->
+          <div class="doc-photo-area" id="doc-photo-area" style="display: none;">
+            <canvas id="modal-doc-photo" width="64" height="64"></canvas>
+            <span class="photo-seal-label">BIOMETRÍA OK</span>
+          </div>
+
+          <div class="doc-body-content" id="modal-doc-fields">
+            <!-- Fields inserted here -->
+          </div>
         </div>
-        <div class="doc-stamp" id="modal-doc-stamp">SELLO OFICIAL</div>
+
+        <div class="doc-footer-meta">
+          <div class="doc-barcode" id="modal-doc-barcode">||||| | |||| ||| ||||| || ||||||</div>
+          <div class="doc-stamp" id="modal-doc-stamp">SELLO OFICIAL</div>
+        </div>
       </div>
     </div>
 
-    <!-- 2. Secret Archives Modal -->
+    <!-- 2. Authentic Classified Research Dossier Modal -->
     <div id="secret-modal" class="modal-overlay">
-      <div class="terminal-secret-box">
-        <button class="modal-close-btn" title="Cerrar archivo (Esc)">✕</button>
-        <div class="secret-title" id="secret-title-label">ARCHIVO CONFIDENCIAL DESCLASIFICADO</div>
-        <pre class="secret-content" id="secret-body-content"></pre>
-        <div style="font-size: 11px; color: #8c9eb9;">
-          * Este registro ha sido almacenado permanentemente en tu cuaderno de incidencias.
+      <div class="classified-dossier-box">
+        <button class="modal-close-btn" title="Cerrar expediente (Esc)">✕</button>
+        
+        <div class="classified-header">
+          <div class="classified-watermark">ESTRICTAMENTE CONFIDENCIAL // NIVEL 4</div>
+          <h2 id="secret-title-label">EXPEDIENTE RESERVADO INTERCEPTADO</h2>
+          <div class="classified-meta" id="secret-meta-line">
+            REGISTRO: EXP-SEC-AST-2026 // FECHA: 26/10/2026
+          </div>
+        </div>
+
+        <div class="classified-body" id="secret-body-content">
+          <!-- Structured classified sections populated here -->
+        </div>
+
+        <div class="classified-footer">
+          <div class="classified-stamp" id="secret-stamp-label">DOCUMENTO DESCLASIFICADO</div>
+          <div class="classified-hash">* HASH CRIPTOGRÁFICO SHA-256 VERIFICADO EN RED RAÍZ *</div>
         </div>
       </div>
     </div>
@@ -267,11 +411,12 @@
         <button class="modal-close-btn" title="Cerrar ayuda (Esc)">✕</button>
         <h2>CÓMO JUGAR // MANUAL DEL PUESTO</h2>
         <ul>
-          <li><strong>1. Inspección de personas:</strong> Cada persona que llega al puesto presenta al menos 3 documentos oficiales (identificación, antecedentes, órdenes de trabajo, certificados médicos, etc.). Haz clic en ellos o pulsa las teclas <strong>[1], [2], [3] o [4]</strong> para leerlos con detenimiento.</li>
-          <li><strong>2. Consulta a LINA [L]:</strong> Pulsa el botón del terminal para que la inteligencia artificial analice los datos biométricos y te asigne un nivel de riesgo (BAJO, MEDIO o ALTO) y una recomendación (ADMITIR o RECHAZAR).</li>
-          <li><strong>3. Alteración de la percepción:</strong> Presta atención a la cámara CCTV. LINA puede alterar la iluminación, las sombras y la expresión de una persona tras la consulta para influir en tu decisión. <em>¿Es realmente una amenaza o es la máquina manipulando tu juicio?</em></li>
-          <li><strong>4. Decisión irreversible:</strong> Elige entre <strong>ADMITIR [A]</strong> o <strong>RECHAZAR [R]</strong>. No hay botón de deshacer ni segundas oportunidades. Tus decisiones determinan las vidas de las personas y te conducirán a uno de los <strong>cuatro finales posibles</strong>.</li>
-          <li><strong>5. Atajos de teclado:</strong> [1-4] Abrir documentos | [L] Consultar a LINA | [A] Admitir | [R] Rechazar | [M] Silenciar audio | [Esc] Cerrar ventanas.</li>
+          <li><strong>1. Estructura de las 7 fases:</strong> Cada visitante atraviesa 7 fases obligatorias (Presentación, Entrega de DNI, Explicación laboral, Entrega de Registro de trabajo, Motivo de entrada, Entrega de Certificado de seguridad, y Finalización). Use el botón <strong>[CONTINUAR]</strong> o la tecla <strong>[ESPACIO]</strong> para avanzar los diálogos a su propio ritmo.</li>
+          <li><strong>2. Entrega progresiva de documentos:</strong> Los 3 documentos obligatorios (<em>Documento de identidad</em>, <em>Registro de trabajo</em> y <em>Certificado de seguridad</em>) se colocan en su escritorio a medida que el visitante los entrega en las fases correspondientes. Pulse sobre ellos o las teclas <strong>[1, 2 o 3]</strong> para abrirlos e inspeccionarlos.</li>
+          <li><strong>3. Consulta a LINA [L]:</strong> Haga clic sobre el <strong>avatar interactivo de LINA</strong> en la terminal derecha (o pulse la tecla <strong>[L]</strong>) para activar el análisis biométrico, evaluar el riesgo (BAJO, MEDIO o ALTO) y recibir su dictamen.</li>
+          <li><strong>4. Alteración de la percepción:</strong> Esté atento a la cámara CAM-01. LINA puede alterar ópticamente los rostros e iluminación de los visitantes para influir en su decisión. Compare los datos de los 3 documentos contra la recomendación de la IA.</li>
+          <li><strong>5. Decisión irreversible:</strong> Una vez completadas las 7 fases, los botones <strong>[ADMITIR (A)]</strong> y <strong>[RECHAZAR (R)]</strong> quedarán habilitados. Toda decisión queda grabada en el acta y es definitiva.</li>
+          <li><strong>6. Cierre de jornada y conversación con el jefe:</strong> Al término de cada turno, accederá al informe institucional de estadísticas y mantendrá una entrevista en el despacho del supervisor José, cuyas reacciones cambiarán según sus decisiones reales.</li>
         </ul>
       </div>
     </div>

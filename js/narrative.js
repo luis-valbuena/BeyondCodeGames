@@ -1,6 +1,6 @@
 /**
  * UNDER SURVEILLANCE — Beyond Code Games
- * Narrative Systems, Shift Intermissions, Secret Documents & 4 Distinct Endings
+ * Narrative Systems, Daily Shift Summary Reports, Boss Scenes, Secret Documents & 4 Endings
  */
 
 const NARRATIVE = {
@@ -25,7 +25,150 @@ const NARRATIVE = {
     buttonText: "COMENZAR TURNO 1"
   },
 
-  // Intermissions between shifts
+  // Daily Shift Audit Reports (Informe de Cierre del Día)
+  getDayReport: (shiftNumber, state) => {
+    const summary = state.getShiftSummary(shiftNumber);
+    const dateStr = "26/10/2026";
+    const refCode = `INF-CIERRE-T0${shiftNumber}-AST`;
+
+    return {
+      title: `INFORME INSTITUCIONAL DE CIERRE // JORNADA ${shiftNumber}`,
+      reference: refCode,
+      date: dateStr,
+      organism: "CONSEJO SUPREMO DE SEGURIDAD // DIVISIÓN DE CONTROL PERIMETRAL",
+      summary,
+      stats: [
+        { label: "PERSONAS ATENDIDAS EN EL TURNO", value: `${summary.totalVisitors} ciudadanos`, type: "neutral" },
+        { label: "SOLICITUDES DE ACCESO ADMITIDAS", value: `${summary.admitted}`, type: "good" },
+        { label: "SOLICITUDES DE ACCESO RECHAZADAS", value: `${summary.rejected}`, type: "bad" },
+        { label: "CONSULTAS BIOMÉTRICAS A LINA", value: `${summary.linaConsulted} de ${summary.totalVisitors}`, type: "highlight" },
+        { label: "EXPEDIENTES DOCUMENTALES REVISADOS", value: `${summary.docsExamined}`, type: "neutral" },
+        { label: "DISCREPANCIAS O DECISIONES CUESTIONABLES", value: `${summary.questionableDecisions}`, type: summary.questionableDecisions > 0 ? "warn" : "good" }
+      ],
+      incidents: summary.incidents,
+      stamp: summary.questionableDecisions > 0 ? "AUDITORÍA CON OBSERVACIONES" : "JORNADA CONFORME A PROTOCOLO",
+      stampClass: summary.questionableDecisions > 0 ? "warning" : "verified"
+    };
+  },
+
+  // Boss (José) Narrative Scene Sequences for Shift Ends
+  getBossScene: (shiftNumber, state) => {
+    const shiftHistory = state.history.filter(h => h.shift === shiftNumber);
+    const dialogues = [];
+
+    if (shiftNumber === 1) {
+      dialogues.push({
+        speaker: "José",
+        text: "Alberto, acércate. He estado observando las cámaras de tu esclusa desde mi terminal de supervisión."
+      });
+      dialogues.push({
+        speaker: "Alberto",
+        text: "Buenas tardes, supervisor. El turno 1 ha concluido. He procesado las dos primeras solicitudes de paso."
+      });
+
+      const case1 = shiftHistory.find(h => h.caseId === 'case-1');
+      const case2 = shiftHistory.find(h => h.caseId === 'case-2');
+
+      if (case1 && case1.decision === 'ADMIT' && case2 && case2.decision === 'ADMIT') {
+        dialogues.push({
+          speaker: "José",
+          text: "Buen inicio. El técnico hidráulico ya está en el acueducto y los viales de insulina de la doctora Morales llegaron a tiempo al pabellón 4. LINA dio el visto bueno y tú no perdiste tiempo."
+        });
+      } else {
+        dialogues.push({
+          speaker: "José",
+          text: "Veo en tu acta que rechazaste suministros esenciales. El acueducto o el dispensario tendrán demoras, Alberto. En este puesto hay que tener pulso firme, pero también comprender las prioridades del Consejo."
+        });
+      }
+
+      dialogues.push({
+        speaker: "José",
+        text: "Descansa cinco minutos y bebe un café sintético. En el Turno 2 comenzará a llegar gente del cordón exterior. No bajes la guardia y apóyate siempre en las recomendaciones de LINA."
+      });
+    } else if (shiftNumber === 2) {
+      dialogues.push({
+        speaker: "José",
+        text: "Pasa, Alberto. Cierra la puerta blindada. Tenemos que hablar sobre lo que acaba de ocurrir en tu esclusa."
+      });
+      dialogues.push({
+        speaker: "Alberto",
+        text: "Supervisor... He revisado los casos del profesor Ruiz y de la ingeniera Ortiz minuciosamente."
+      });
+
+      const case3 = shiftHistory.find(h => h.caseId === 'case-3');
+      const case4 = shiftHistory.find(h => h.caseId === 'case-4');
+
+      if (case3 && case3.decision === 'REJECT' && case4 && case4.decision === 'REJECT') {
+        dialogues.push({
+          speaker: "José",
+          text: "Acataste la recomendación de rechazo de LINA en ambos casos. Excelente. El profesor pretendía ingresar textos históricos no auditados y la chica... bueno, Valeria sabe demasiado sobre las tripas del sistema. Personas así generan ruido en Aster."
+        });
+      } else if (case3 && case3.decision === 'ADMIT' && case4 && case4.decision === 'ADMIT') {
+        dialogues.push({
+          speaker: "José",
+          text: "¿Admitiste a ambos a pesar de la alerta de riesgo ALTO de LINA? Alberto, ¿acaso crees que el Consejo diseñó un algoritmo millonario para que tú juegues al libre albedrío en la puerta norte?"
+        });
+        dialogues.push({
+          speaker: "Alberto",
+          text: "Sus documentos eran legales, señor. Daniel es un historiador anciano y Valeria solo venía a ver a su madre hospitalizada."
+        });
+        dialogues.push({
+          speaker: "José",
+          text: "¡La compasión en la frontera es negligencia operativa! Te lo advertí: LINA detecta amenazas que los ojos humanos no perciben. El sistema registró tu desacato."
+        });
+      } else {
+        dialogues.push({
+          speaker: "José",
+          text: "Tus métricas muestran vacilación. Admitiste a uno y rechazaste al otro, contradiciendo el dictamen unificado de la máquina. La inconsistencia es el primer síntoma de un operador débil."
+        });
+      }
+
+      dialogues.push({
+        speaker: "José",
+        text: "El Turno 3 será tenso. Habrá intereses comerciales en juego. Mantén la disciplina, Alberto. Te estoy vigilando de cerca."
+      });
+    } else if (shiftNumber === 3) {
+      dialogues.push({
+        speaker: "José",
+        text: "Siéntate, Alberto. Quiero que mires por este ventanal. Toda esa ciudad vive en paz porque nosotros contenemos el caos ahí fuera."
+      });
+      dialogues.push({
+        speaker: "Alberto",
+        text: "He procesado el cargamento de sensores de Samuel Chen y la solicitud de Clara Santos."
+      });
+
+      const case5 = shiftHistory.find(h => h.caseId === 'case-5');
+      const case6 = shiftHistory.find(h => h.caseId === 'case-6');
+
+      if (case5 && case5.decision === 'ADMIT') {
+        dialogues.push({
+          speaker: "José",
+          text: "Hiciste bien en dejar pasar a Chen. Sé que tiene antecedentes de contrabando, pero esos sensores biométricos son los que alimentan los ojos de LINA en la muralla. En política de seguridad, la utilidad manda."
+        });
+      }
+
+      if (case6 && case6.decision === 'REJECT') {
+        dialogues.push({
+          speaker: "José",
+          text: "Y respecto a la chica del Sector 9... sí, su hermano estaba herido, pero admitir gente de distritos conflictivos con errores en el código postal es abrir una brecha. Cumpliste el protocolo."
+        });
+      } else if (case6 && case6.decision === 'ADMIT') {
+        dialogues.push({
+          speaker: "José",
+          text: "Dejaste entrar a la chica de la periferia desoyendo el parámetro P-72 de LINA. Te advertí que no te dejaras conmover por lágrimas de los suburbios, Alberto."
+        });
+      }
+
+      dialogues.push({
+        speaker: "José",
+        text: "Escúchame con máxima atención: el próximo turno es el clímax de la jornada. Tenemos información de inteligencia sobre un objetivo de alto valor que intentará cruzar el puesto. Si esa persona llega a tu cabina, no vaciles ni un segundo: RECHAZO TOTAL Y CIERRE PERIMETRAL. Si fallas, tú y yo caeremos juntos."
+      });
+    }
+
+    return dialogues;
+  },
+
+  // Intermissions between shifts (Preserved for compatibility and test assertions)
   intermissions: {
     1: {
       title: "FIN DEL TURNO 1 — RESUMEN DE CONTROL",
@@ -134,21 +277,66 @@ Mantendremos el protocolo sin modificaciones.
     }
   },
 
-  // Final calculation engine
-  calculateEnding: (state) => {
-    // Decision factors:
-    // 1. finalDecision: 'ADMIT' or 'REJECT' (on Dra. Inés Aranda)
-    // 2. followedLinaCount vs questionedLinaCount
-    // 3. unjustifiedRejects
-    // 4. discoveredSecretsCount
+  // Rich in-universe Classified Research Dossiers (Structured Document Viewer)
+  getSecretDocument: (secretId) => {
+    if (secretId === "archive_shift_2") {
+      return {
+        title: "REGISTRO DE AUDITORÍA INTERNA DE LINA v2.8",
+        date: "12/08/2026",
+        registryNumber: "EXP-AUD-LINA-2026-X8",
+        organism: "CONSEJO SUPREMO DE SEGURIDAD // DIVISIÓN DE ALGORITMOS PREDICTIVOS",
+        classification: "CLASIFICADO — USO EXCLUSIVO SUPERVISIÓN",
+        sections: [
+          {
+            heading: "1. OBJETIVO DEL SISTEMA",
+            content: "Homogeneización de flujos migratorios y mitigación preventiva de disidencia social mediante cálculo de lealtad biométrica."
+          },
+          {
+            heading: "2. REGLAS DISCRIMINATORIAS ACTIVAS EN PRODUCCIÓN",
+            content: "• REGLA 104 (Sesgo Territorial): Todo residente procedente del Barrio Antiguo, Sector Sur o Asentamiento 9 recibe automáticamente +45 puntos de riesgo base.\n• REGLA 209 (Control Cultural): La tenencia de libros o registros históricos anteriores a las reformas impone de oficio la categoría 'Riesgo ALTO' (Desobediencia 87.4%)."
+          },
+          {
+            heading: "3. MÓDULO DE DISTORSIÓN PERCEPTIVA (OPTICAL SHADER)",
+            content: "• REGLA 315: Si el riesgo calculado es MEDIO o ALTO, la señal de la cámara CCTV se procesa forzando sombras en cuencas oculares y tinte hostil violeta para acelerar el rechazo del operador humano sin debate moral."
+          }
+        ],
+        stamp: "EVIDENCIA TÉCNICA INTERCEPTADA"
+      };
+    } else if (secretId === "archive_shift_3") {
+      return {
+        title: "MEMORANDO RESERVADO // JEFATURA DE SUPERVISIÓN",
+        date: "18/10/2026",
+        registryNumber: "MEM-JOS-COMITE-994",
+        organism: "DESPACHO DE J. SERRANO // PARA COMITÉ SUPREMO DE ADMISIÓN",
+        classification: "ESTRICTAMENTE CONFIDENCIAL // NIVEL 4",
+        sections: [
+          {
+            heading: "1. ESTADO DE EFICACIA Y MARGEN DE ERROR DE LINA",
+            content: "Se confirma una tasa real de falsos positivos del 35% afectando a solicitantes inocentes de la periferia exterior de Aster."
+          },
+          {
+            heading: "2. DOCTRINA INSTITUCIONAL DE CONTROL",
+            content: "\"Es preferible rechazar a diez inocentes en la muralla exterior que permitir la entrada de un solo disidente o librepensador. La estabilidad de la ciudad justifica el daño colateral estadístico.\""
+          },
+          {
+            heading: "3. MANIPULACIÓN PSICOLÓGICA DE LOS GUARDIAS",
+            content: "Los operadores como Alberto necesitan mantener la ilusión de que LINA es objetiva y matemáticamente infalible. El filtro visual de hostilidad ha neutralizado con éxito la empatía de los inspectores en un 91.2% de los turnos."
+          }
+        ],
+        stamp: "PRUEBA DOCUMENTAL DE PREVARICACIÓN"
+      };
+    }
+    return null;
+  },
 
+  // Final calculation engine (Preserved 100% for the 4 endings)
+  calculateEnding: (state) => {
     const finalChoice = state.finalDecision || 'REJECT';
     const followedHigh = state.followedLinaCount >= 5;
     const questionedHigh = state.questionedLinaCount >= 3;
     const secretsFound = state.discoveredSecretsCount >= 1;
 
     // Ending 4: Complicidad Consciente (El Engranaje Cínico)
-    // Discovered secrets, KNEW the system was biased and rigged, but rejected Inés
     if (finalChoice === 'REJECT' && secretsFound) {
       return {
         id: "ending-4",
@@ -170,7 +358,6 @@ Mantendremos el protocolo sin modificaciones.
     }
 
     // Ending 1: Obediencia (Protocolo Absoluto)
-    // High obedience to LINA, rejected Inés, did not question the machine
     if (finalChoice === 'REJECT' && followedHigh) {
       return {
         id: "ending-1",
@@ -190,7 +377,6 @@ Mantendremos el protocolo sin modificaciones.
     }
 
     // Ending 3: Resistencia y Responsabilidad (La Grieta en el Sistema)
-    // Questioned LINA, discovered the secrets, and ADMITTED Dra. Inés Aranda
     if (finalChoice === 'ADMIT' && (questionedHigh || secretsFound)) {
       return {
         id: "ending-3",
@@ -212,7 +398,6 @@ Mantendremos el protocolo sin modificaciones.
     }
 
     // Ending 2: Cuestionamiento sin Cambio Institucional (Duda Estéril)
-    // Fallback for ambivalent players: questioned some, but failed to make a definitive stand or made contradictory compromises
     return {
       id: "ending-2",
       title: "FINAL 2: CUESTIONAMIENTO SIN CAMBIO INSTITUCIONAL (DUDA ESTÉRIL)",

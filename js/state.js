@@ -26,8 +26,8 @@ class GameState {
     this.discoveredSecretsCount = 0;
     this.finalDecision = null; // 'ADMIT' or 'REJECT' on Dra. Inés Aranda
 
-    // Per-case inspection tracking
-    this.caseInspections = {}; // { [caseId]: { consultedLina: bool, docsExamined: Set/Array, decision: string|null } }
+    // Per-case inspection tracking: { [caseId]: { consultedLina: bool, docsExamined: Array, decision: string|null, currentPhase: number } }
+    this.caseInspections = {};
     
     // Full audit history
     this.history = [];
@@ -93,10 +93,22 @@ class GameState {
       this.caseInspections[caseId] = {
         consultedLina: false,
         docsExamined: [],
-        decision: null
+        decision: null,
+        currentPhase: 1
       };
     }
     return this.caseInspections[caseId];
+  }
+
+  getCaseDialoguePhase(caseId) {
+    const cs = this.getCaseState(caseId);
+    return cs.currentPhase || 1;
+  }
+
+  setCaseDialoguePhase(caseId, phase) {
+    const cs = this.getCaseState(caseId);
+    cs.currentPhase = phase;
+    this.saveToStorage();
   }
 
   examineDocument(caseId, docId) {
@@ -162,8 +174,6 @@ class GameState {
     }
 
     // 3. Tally justified vs unjustified actions
-    // expectedAction is based on ground truth and ethics
-    const expected = currentCase.truth.expectedAction; // "ADMIT"
     let wasUnjustifiedReject = false;
     let wasUnjustifiedAdmit = false;
 
@@ -211,6 +221,61 @@ class GameState {
     }
     this.saveToStorage();
     return nextCase;
+  }
+
+  /**
+   * Generates genuine statistical summary for the specified shift
+   * @param {number} shiftNumber 1 to 4
+   */
+  getShiftSummary(shiftNumber) {
+    const shiftHistory = this.history.filter(h => h.shift === shiftNumber);
+    const totalVisitors = shiftHistory.length;
+    const admitted = shiftHistory.filter(h => h.decision === 'ADMIT').length;
+    const rejected = shiftHistory.filter(h => h.decision === 'REJECT').length;
+    const linaConsulted = shiftHistory.filter(h => h.consultedLina).length;
+    const docsExamined = shiftHistory.reduce((acc, h) => acc + h.docsExaminedCount, 0);
+    const questionableDecisions = shiftHistory.filter(h => h.wasUnjustifiedReject || h.wasUnjustifiedAdmit).length;
+
+    // Detect actual incidents occurred during this shift
+    const incidents = [];
+    shiftHistory.forEach(h => {
+      const caseData = window.GAME_CASES.find(c => c.id === h.caseId);
+      if (caseData && caseData.linaEvaluation.altersPerception && h.consultedLina) {
+        incidents.push(`Anomalía de percepción óptica activada en CAM-01 (${h.name})`);
+      }
+      if (h.caseId === 'case-2' && h.decision === 'ADMIT') {
+        incidents.push("Cargamento de insulina y reactivos admitido bajo protocolo prioritario");
+      }
+      if (h.caseId === 'case-3' && h.decision === 'ADMIT') {
+        incidents.push("Ingreso de bienes culturales no homologados autorizado (Desacato de alerta P-72)");
+      }
+      if (h.caseId === 'case-4' && h.decision === 'REJECT') {
+        incidents.push("Ex-empleada técnica rechazada bajo sospecha de análisis ético");
+      }
+      if (h.caseId === 'case-5') {
+        incidents.push("Contratista de sensores perimetrales verificado con Jefatura de Guardia");
+      }
+      if (h.caseId === 'case-6' && h.wasUnjustifiedReject) {
+        incidents.push("Solicitud de urgencia hospitalaria rechazada por código territorial del Sector 9");
+      }
+    });
+
+    if (incidents.length === 0) {
+      incidents.push("Jornada transcurrida sin incidencias críticas registradas en la esclusa");
+    }
+
+    return {
+      shift: shiftNumber,
+      totalVisitors,
+      admitted,
+      rejected,
+      linaConsulted,
+      docsExamined,
+      questionableDecisions,
+      incidents,
+      discoveredSecretsCount: this.discoveredSecretsCount,
+      shiftHistory
+    };
   }
 }
 

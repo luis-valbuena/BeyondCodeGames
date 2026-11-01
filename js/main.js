@@ -9,17 +9,25 @@ document.addEventListener('DOMContentLoaded', () => {
   console.log("Desarrollo de videojuego funcional para navegador");
   console.log("=================================================");
 
-  // 1. Initialize procedural pixel art renderer
-  window.pixelRenderer.initCanvases('title-canvas', 'person-canvas');
+  // 1. Initialize procedural pixel art renderer canvases
+  window.pixelRenderer.initCanvases(
+    'title-canvas',
+    'person-canvas',
+    'lina-avatar-canvas',
+    'boss-canvas',
+    'dialogue-portrait-canvas'
+  );
 
-  // 2. Initialize LINA AI terminal elements
+  // 2. Initialize LINA AI terminal & interactive avatar elements
   window.linaSystem.init({
     terminalEl: document.getElementById('lina-terminal-screen'),
     progressBar: document.getElementById('scan-progress-fill'),
     progressBox: document.getElementById('scan-progress-box'),
     telemetryText: document.getElementById('telemetry-text'),
     resultBox: document.getElementById('lina-result-box'),
-    consultBtn: document.getElementById('btn-consult-lina')
+    consultBtn: document.getElementById('btn-consult-lina'),
+    avatarContainer: document.getElementById('lina-avatar-container'),
+    statusBadge: document.getElementById('lina-avatar-badge')
   });
 
   // 3. Initialize UI controller and event bindings
