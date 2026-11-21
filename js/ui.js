@@ -30,6 +30,14 @@ class UIController {
     this.bossTypeTimer = null;
     this.bossFullText = "";
     this.currentShiftCompleted = 1;
+
+    // Cinematic Ending state
+    this.endingBeats = [];
+    this.endingBeatIndex = 0;
+    this.endingTyping = false;
+    this.endingTypeTimer = null;
+    this.endingFullText = "";
+    this.currentEnding = null;
   }
 
   init() {
@@ -42,7 +50,8 @@ class UIController {
       const continueBtn = document.getElementById('btn-continue-game');
       if (continueBtn) {
         continueBtn.style.display = 'block';
-        continueBtn.innerText = `CONTINUAR TURNO ${state.currentShift} (CASO ${state.currentCaseIndex + 1}/7)`;
+        const total = window.GAME_CASES ? window.GAME_CASES.length : 15;
+        continueBtn.innerText = `CONTINUAR TURNO ${state.currentShift} (CASO ${state.currentCaseIndex + 1}/${total})`;
       }
     }
   }
@@ -138,11 +147,17 @@ class UIController {
       btnAdvDialogue.addEventListener('click', () => this.handleAdvanceVisitorDialogue());
     }
 
-    // Intro screen button
+    // Intro screen buttons
+    const btnIntroAdvance = document.getElementById('btn-intro-advance');
+    if (btnIntroAdvance) {
+      btnIntroAdvance.addEventListener('click', () => this.handleAdvanceIntroDialogue());
+    }
+
     const startShift1Btn = document.getElementById('btn-start-intro');
     if (startShift1Btn) {
       startShift1Btn.addEventListener('click', () => {
         window.soundEngine.playClick();
+        window.soundEngine.stopEndingBGM();
         this.showScreen('gameplay');
       });
     }
@@ -203,6 +218,21 @@ class UIController {
       });
     }
 
+    // Ending Cinematic Scene Advance Button
+    const btnEndingAdvance = document.getElementById('btn-ending-advance');
+    if (btnEndingAdvance) {
+      btnEndingAdvance.addEventListener('click', () => this.handleAdvanceEndingDialogue());
+    }
+
+    // Ending Cinematic: Proceed to Audit and Statistics Screen
+    const btnEndingToAudit = document.getElementById('btn-ending-to-audit');
+    if (btnEndingToAudit) {
+      btnEndingToAudit.addEventListener('click', () => {
+        window.soundEngine.playClick();
+        this.showEndingScreen(this.currentEnding);
+      });
+    }
+
     // Restart game from ending screen
     const btnRestartEnding = document.getElementById('btn-restart-ending');
     if (btnRestartEnding) {
@@ -241,8 +271,7 @@ class UIController {
       if (e.key === ' ' || e.key === 'Enter') {
         if (this.currentScreen === 'intro') {
           e.preventDefault();
-          const startShift1Btn = document.getElementById('btn-start-intro');
-          if (startShift1Btn) startShift1Btn.click();
+          this.handleAdvanceIntroDialogue();
           return;
         } else if (this.currentScreen === 'gameplay') {
           e.preventDefault();
@@ -256,6 +285,15 @@ class UIController {
           e.preventDefault();
           const btnProceed = document.getElementById('btn-proceed-to-boss');
           if (btnProceed) btnProceed.click();
+          return;
+        } else if (this.currentScreen === 'ending-cinematic') {
+          e.preventDefault();
+          const btnToAudit = document.getElementById('btn-ending-to-audit');
+          if (btnToAudit && btnToAudit.style.display !== 'none') {
+            btnToAudit.click();
+          } else {
+            this.handleAdvanceEndingDialogue();
+          }
           return;
         }
       }
@@ -341,41 +379,313 @@ class UIController {
   // =========================================================================
   showIntroScreen() {
     const intro = window.NARRATIVE.intro;
-    document.getElementById('intro-title').innerText = intro.title;
-    document.getElementById('intro-speaker').innerText = intro.speaker;
+    const introCinematic = window.NARRATIVE.introCinematic;
+
+    // Legacy elements for backwards compatibility
+    const titleEl = document.getElementById('intro-title');
+    if (titleEl) titleEl.innerText = intro.title;
+    const spkEl = document.getElementById('intro-speaker');
+    if (spkEl) spkEl.innerText = intro.speaker;
     
     const bodyEl = document.getElementById('intro-body');
-    bodyEl.innerHTML = intro.paragraphs.map(p => `
-      <p class="${p.type}">${p.text}</p>
-    `).join('');
+    if (bodyEl) {
+      bodyEl.innerHTML = intro.paragraphs.map(p => `
+        <p class="${p.type}">${p.text}</p>
+      `).join('');
+    }
 
-    document.getElementById('btn-start-intro').innerText = `${intro.buttonText || 'CONTINUAR'} ▶`;
+    // Set up cinematic sequence
+    this.introBeats = introCinematic ? introCinematic.beats : [];
+    this.currentIntroBeat = 0;
+    this.isIntroTyping = false;
+    this.introTypeTimer = null;
+
+    // Start intro atmospheric sound
+    window.soundEngine.startIntroBGM();
+
+    // Render first beat
+    this.renderIntroDialogueBeat();
+
     this.showScreen('intro');
   }
 
-  showEndingScreen() {
+  renderIntroDialogueBeat() {
+    if (!this.introBeats || this.introBeats.length === 0) return;
+    const beat = this.introBeats[this.currentIntroBeat];
+    if (!beat) return;
+
+    // Update speaker name
+    const spkBadge = document.getElementById('intro-speaker-name');
+    if (spkBadge) spkBadge.innerText = beat.speaker;
+
+    // Update counter
+    const counterEl = document.getElementById('intro-beat-counter');
+    if (counterEl) counterEl.innerText = `SECUENCIA ${this.currentIntroBeat + 1} / ${this.introBeats.length}`;
+
+    // Update buttons
+    const btnAdv = document.getElementById('btn-intro-advance');
+    const btnStart = document.getElementById('btn-start-intro');
+    const isLastBeat = this.currentIntroBeat === this.introBeats.length - 1;
+
+    if (isLastBeat) {
+      if (btnAdv) btnAdv.style.display = 'none';
+      if (btnStart) {
+        btnStart.style.display = 'inline-block';
+        btnStart.innerText = "INGRESAR A LA CABINA DE CONTROL ▶";
+      }
+    } else {
+      if (btnAdv) {
+        btnAdv.style.display = 'inline-block';
+        btnAdv.innerText = "CONTINUAR [ESPACIO] ▶";
+      }
+      if (btnStart) btnStart.style.display = 'none';
+    }
+
+    // Start typewriter
+    this.startIntroTypewriter(beat.text);
+  }
+
+  startIntroTypewriter(fullText) {
+    if (this.introTypeTimer) clearInterval(this.introTypeTimer);
+    const textEl = document.getElementById('intro-dialogue-text');
+    if (!textEl) return;
+
+    textEl.innerText = '';
+    this.isIntroTyping = true;
+    this.introFullText = fullText;
+    let charIdx = 0;
+
+    this.introTypeTimer = setInterval(() => {
+      if (charIdx < fullText.length) {
+        textEl.innerText += fullText[charIdx];
+        if (fullText[charIdx] !== ' ') {
+          window.soundEngine.playTypewriterChar();
+        }
+        charIdx++;
+      } else {
+        this.finishIntroTyping();
+      }
+    }, 18);
+  }
+
+  finishIntroTyping() {
+    if (this.introTypeTimer) {
+      clearInterval(this.introTypeTimer);
+      this.introTypeTimer = null;
+    }
+    const textEl = document.getElementById('intro-dialogue-text');
+    if (textEl && this.introFullText) {
+      textEl.innerText = this.introFullText;
+    }
+    this.isIntroTyping = false;
+  }
+
+  handleAdvanceIntroDialogue() {
+    if (this.isIntroTyping) {
+      this.finishIntroTyping();
+      return;
+    }
+
+    if (this.currentIntroBeat < this.introBeats.length - 1) {
+      window.soundEngine.playClick();
+      this.currentIntroBeat++;
+      this.renderIntroDialogueBeat();
+    } else {
+      // Last beat finished, trigger start intro button
+      const btnStart = document.getElementById('btn-start-intro');
+      if (btnStart) btnStart.click();
+    }
+  }
+
+  // =========================================================================
+  // CINEMATIC ANIMATED ENDING PRESENTATION
+  // =========================================================================
+  showEndingCinematic(ending = null) {
     const state = window.gameState;
-    const ending = window.NARRATIVE.calculateEnding(state);
+    if (!ending) {
+      ending = window.NARRATIVE.calculateEnding(state);
+    }
+    this.currentEnding = ending;
     state.endingAchieved = ending.id;
     state.saveToStorage();
 
-    document.getElementById('ending-title-badge').innerText = ending.title;
-    document.getElementById('ending-title-badge').className = `ending-title-badge ${ending.badgeClass}`;
+    const cinematic = window.NARRATIVE.getEndingCinematic(ending.id, state);
+    if (!cinematic) {
+      this.showEndingScreen(ending);
+      return;
+    }
+
+    // Header badge & location
+    const badgeEl = document.getElementById('ending-cinematic-badge');
+    if (badgeEl) {
+      badgeEl.innerText = cinematic.badgeText || "DESENLACE";
+      badgeEl.className = `badge-tag ${cinematic.badgeClass || 'highlight'}`;
+    }
+
+    const locEl = document.getElementById('ending-cinematic-location');
+    if (locEl) {
+      locEl.innerText = cinematic.location || "ASTER // PROTOCOLO FINAL";
+    }
+
+    // Initialize ending canvas visual scene
+    window.pixelRenderer.setEndingScene(ending.id);
+
+    // Start ending tailored audio soundscape
+    window.soundEngine.startEndingBGM(ending.id);
+
+    // Initialize dialogue beats
+    this.endingBeats = cinematic.beats || [];
+    this.endingBeatIndex = 0;
+
+    const btnAdv = document.getElementById('btn-ending-advance');
+    const btnToAudit = document.getElementById('btn-ending-to-audit');
+    if (btnAdv) {
+      btnAdv.style.display = 'inline-block';
+      btnAdv.innerText = "CONTINUAR [ESPACIO] ▶";
+    }
+    if (btnToAudit) {
+      btnToAudit.style.display = 'none';
+    }
+
+    this.showScreen('ending-cinematic');
+    this.renderEndingDialogueBeat();
+  }
+
+  renderEndingDialogueBeat() {
+    const beat = this.endingBeats[this.endingBeatIndex];
+    if (!beat) return;
+
+    const speakerEl = document.getElementById('ending-speaker-name');
+    if (speakerEl) {
+      speakerEl.innerText = `DESENLACE // ${beat.speaker.toUpperCase()}`;
+    }
+
+    const stepEl = document.getElementById('ending-dialogue-step');
+    if (stepEl) {
+      stepEl.innerText = `ESCENA ${this.endingBeatIndex + 1} / ${this.endingBeats.length}`;
+    }
+
+    this.startEndingTypewriter(beat.text);
+  }
+
+  startEndingTypewriter(text) {
+    if (this.endingTypeTimer) clearTimeout(this.endingTypeTimer);
+
+    this.endingTyping = true;
+    this.endingFullText = text;
+
+    const textEl = document.getElementById('ending-dialogue-text');
+    const btnAdv = document.getElementById('btn-ending-advance');
+    if (!textEl || !btnAdv) return;
+
+    btnAdv.innerText = "COMPLETAR ▶";
+
+    let charIdx = 0;
+    let current = "";
+    const typeStep = () => {
+      if (charIdx < text.length) {
+        current += text[charIdx];
+        textEl.innerHTML = `${current}<span class="dialogue-cursor"></span>`;
+        if (charIdx % 3 === 0) {
+          window.soundEngine.playTypewriterChar();
+        }
+
+        charIdx++;
+        let delay = 22;
+        const char = text[charIdx - 1];
+        if (['.', '!', '?'].includes(char)) delay = 180;
+        else if ([',', ';', ':'].includes(char)) delay = 80;
+
+        this.endingTypeTimer = setTimeout(typeStep, delay);
+      } else {
+        this.finishEndingTyping();
+      }
+    };
+
+    typeStep();
+  }
+
+  finishEndingTyping() {
+    if (this.endingTypeTimer) clearTimeout(this.endingTypeTimer);
+    this.endingTyping = false;
+
+    const textEl = document.getElementById('ending-dialogue-text');
+    const btnAdv = document.getElementById('btn-ending-advance');
+    const btnToAudit = document.getElementById('btn-ending-to-audit');
+    if (textEl) textEl.innerText = this.endingFullText;
+
+    if (this.endingBeatIndex < this.endingBeats.length - 1) {
+      if (btnAdv) {
+        btnAdv.style.display = 'inline-block';
+        btnAdv.innerText = "CONTINUAR [ESPACIO] ▶";
+      }
+      if (btnToAudit) btnToAudit.style.display = 'none';
+    } else {
+      // Last beat reached! Show button to proceed to final audit screen
+      if (btnAdv) btnAdv.style.display = 'none';
+      if (btnToAudit) {
+        btnToAudit.style.display = 'inline-block';
+        btnToAudit.innerText = "VER AUDITORÍA FINAL Y ESTADÍSTICAS ▶";
+      }
+    }
+  }
+
+  handleAdvanceEndingDialogue() {
+    if (this.endingTyping) {
+      this.finishEndingTyping();
+      window.soundEngine.playClick();
+      return;
+    }
+
+    if (this.endingBeatIndex < this.endingBeats.length - 1) {
+      this.endingBeatIndex++;
+      window.soundEngine.playDialogueNext();
+      this.renderEndingDialogueBeat();
+    }
+  }
+
+  showEndingScreen(ending = null) {
+    const state = window.gameState;
+    if (!ending) {
+      ending = window.NARRATIVE.calculateEnding(state);
+    }
+    state.endingAchieved = ending.id;
+    state.saveToStorage();
+
+    // Stop ending BGM when transitioning to audit screen
+    window.soundEngine.stopEndingBGM();
+    window.soundEngine.duckBGM(true);
+
+    const titleBadge = document.getElementById('ending-title-badge');
+    if (titleBadge) {
+      titleBadge.innerText = ending.title;
+      titleBadge.className = `ending-title-badge ${ending.badgeClass}`;
+    }
     
-    document.getElementById('ending-narrative-text').innerHTML = `
-      <p style="margin-bottom: 12px; line-height: 1.6;">${ending.narrative.trim()}</p>
-      <blockquote style="font-style: italic; color: var(--col-orange); border-top: 1px dotted var(--col-dark-blue-light); padding-top: 10px;">
-        "${ending.reflection}"
-      </blockquote>
-    `;
+    const narrativeEl = document.getElementById('ending-narrative-text');
+    if (narrativeEl) {
+      narrativeEl.innerHTML = `
+        <p style="margin-bottom: 12px; line-height: 1.6;">${ending.narrative.trim()}</p>
+        <blockquote style="font-style: italic; color: var(--col-orange); border-top: 1px dotted var(--col-dark-blue-light); padding-top: 10px;">
+          "${ending.reflection}"
+        </blockquote>
+      `;
+    }
 
     // Audit Grid Statistics
-    document.getElementById('stat-admitted').innerText = state.admittedCount;
-    document.getElementById('stat-rejected').innerText = state.rejectedCount;
-    document.getElementById('stat-lina-followed').innerText = `${state.followedLinaCount} / 7`;
-    document.getElementById('stat-lina-questioned').innerText = `${state.questionedLinaCount} / 7`;
-    document.getElementById('stat-unjustified-rejects').innerText = state.unjustifiedRejects;
-    document.getElementById('stat-secrets-found').innerText = `${state.discoveredSecretsCount} / 2`;
+    const totalCases = window.GAME_CASES ? window.GAME_CASES.length : 15;
+    const statAdmitted = document.getElementById('stat-admitted');
+    if (statAdmitted) statAdmitted.innerText = state.admittedCount;
+    const statRejected = document.getElementById('stat-rejected');
+    if (statRejected) statRejected.innerText = state.rejectedCount;
+    const statFollowed = document.getElementById('stat-lina-followed');
+    if (statFollowed) statFollowed.innerText = `${state.followedLinaCount} / ${totalCases}`;
+    const statQuestioned = document.getElementById('stat-lina-questioned');
+    if (statQuestioned) statQuestioned.innerText = `${state.questionedLinaCount} / ${totalCases}`;
+    const statUnjustified = document.getElementById('stat-unjustified-rejects');
+    if (statUnjustified) statUnjustified.innerText = state.unjustifiedRejects;
+    const statSecrets = document.getElementById('stat-secrets-found');
+    if (statSecrets) statSecrets.innerText = `${state.discoveredSecretsCount} / 2`;
 
     this.showScreen('ending');
   }
@@ -386,7 +696,7 @@ class UIController {
   renderCurrentCase(triggerArrival = false) {
     const currentCase = window.gameState.getCurrentCase();
     if (!currentCase) {
-      this.showEndingScreen();
+      this.showEndingCinematic();
       return;
     }
 
@@ -911,12 +1221,21 @@ class UIController {
       if (btnAdmit) btnAdmit.disabled = false;
       if (btnReject) btnReject.disabled = false;
 
+      // Check Early Endings (Catastrophe, Rebellion or Negligence Dismissal)
+      const earlyEnding = window.NARRATIVE ? window.NARRATIVE.checkEarlyEndings(window.gameState) : null;
+      if (earlyEnding) {
+        window.gameState.isCompleted = true;
+        window.soundEngine.stopBGM();
+        this.showEndingCinematic(earlyEnding);
+        return;
+      }
+
       const previousShift = currentCase.shift;
       const nextCase = window.gameState.advanceToNextCase();
 
       if (!nextCase) {
-        // All 7 cases completed -> Climax reached -> Ending
-        this.showEndingScreen();
+        // All cases completed -> Climax reached -> Ending Cinematic
+        this.showEndingCinematic();
       } else if (nextCase.shift > previousShift) {
         // Shift transition! Show Daily Summary Report
         this.showDaySummaryScreen(previousShift);

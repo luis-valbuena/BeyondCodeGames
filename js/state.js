@@ -1,4 +1,4 @@
-/**
+﻿/**
  * UNDER SURVEILLANCE — Beyond Code Games
  * Game State Management & Irreversible Decision Ledger
  */

@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>UNDER SURVEILLANCE — Full E2E Simulation Test</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body style="background: #111; color: #eee; font-family: monospace; padding: 20px;">
+  <h1>UNDER SURVEILLANCE — Full E2E Playability & Dialogue Test</h1>
+  <div id="test-results">Ejecutando simulación completa...</div>
+
+  <!-- Hidden game container for testing DOM interaction -->
+  <div id="test-container" style="position: absolute; left: -9999px; top: -9999px;">
+    <!-- Persistent Top Bar -->
+    <header id="top-bar">
+      <div id="status-shift-num">TURNO 1 / 4</div>
+      <div id="status-case-progress">CASO 1 DE 7</div>
+      <button class="btn-toggle-sound">🔊</button>
+    </header>
+
+    <!-- Title Screen -->
+    <section id="title-screen" class="screen active">
+      <canvas id="title-canvas"></canvas>
+      <button id="btn-new-game">INICIAR TURNO</button>
+      <button id="btn-continue-game">CONTINUAR PARTIDA</button>
+      <button id="btn-how-to-play">CÓMO JUGAR</button>
+    </section>
+
+    <!-- Intro Screen -->
+    <section id="intro-screen" class="screen">
+      <canvas id="intro-canvas" width="320" height="180"></canvas>
+      <span id="intro-cinematic-location"></span>
+      <span id="intro-beat-counter"></span>
+      <span id="intro-speaker-name"></span>
+      <div id="intro-dialogue-text"></div>
+      <button id="btn-intro-advance">CONTINUAR ▶</button>
+      <h2 id="intro-title"></h2>
+      <span id="intro-speaker"></span>
+      <div id="intro-body"></div>
+      <button id="btn-start-intro">INGRESAR A LA CABINA</button>
+    </section>
+
+    <!-- Gameplay Screen -->
+    <section id="gameplay-screen" class="screen">
+      <main id="booth-workspace">
+        <div class="panel-left">
+          <div class="person-viewport">
+            <canvas id="person-canvas"></canvas>
+            <div id="perception-overlay" class="perception-overlay"></div>
+            <div id="threat-reticle" class="threat-reticle"></div>
+          </div>
+
+          <div class="visitor-dialogue-console" id="visitor-dialogue-console">
+            <canvas id="dialogue-portrait-canvas" width="72" height="72"></canvas>
+            <div id="dialogue-speaker-name"></div>
+            <div id="dialogue-speaker-sub"></div>
+            <div id="dialogue-phase-tag"></div>
+            <div class="dialogue-body">
+              <div id="dialogue-text-content"></div>
+            </div>
+            <div class="dialogue-actions-bar">
+              <button id="btn-dialogue-advance" class="btn-dialogue-advance">CONTINUAR ▶</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-center">
+          <div id="docs-tray-info">
+            <span id="docs-count-label"></span>
+            <span id="docs-phase-status"></span>
+          </div>
+          <div class="docs-tray" id="docs-tray"></div>
+        </div>
+
+        <div class="panel-right">
+          <div id="lina-avatar-container">
+            <canvas id="lina-avatar-canvas" width="160" height="120"></canvas>
+            <div id="lina-avatar-badge" class="lina-avatar-badge available"></div>
+          </div>
+          <div id="lina-terminal-screen">
+            <div id="scan-progress-box">
+              <div id="telemetry-text"></div>
+              <div id="scan-progress-fill"></div>
+            </div>
+            <div id="lina-result-box"></div>
+          </div>
+          <button id="btn-consult-lina">CONSULTAR LINA</button>
+        </div>
+      </main>
+
+      <footer id="bottom-dock">
+        <div id="dock-status-msg"></div>
+        <div class="decision-buttons">
+          <button id="btn-decision-admit" disabled>ADMITIR</button>
+          <button id="btn-decision-reject" disabled>RECHAZAR</button>
+        </div>
+      </footer>
+    </section>
+
+    <!-- Day Summary Screen -->
+    <section id="day-summary-screen" class="screen">
+      <h2 id="day-summary-title"></h2>
+      <span id="day-summary-ref"></span>
+      <div id="day-summary-organism"></div>
+      <div id="day-summary-stats-grid"></div>
+      <ul id="day-summary-incidents-list"></ul>
+      <div id="day-summary-stamp"></div>
+      <button id="btn-proceed-to-boss">IR AL DESPACHO DE SUPERVISIÓN</button>
+    </section>
+
+    <!-- Boss Scene Screen -->
+    <section id="boss-scene-screen" class="screen">
+      <canvas id="boss-canvas"></canvas>
+      <span id="boss-shift-indicator"></span>
+      <span id="boss-speaker-name"></span>
+      <span id="boss-dialogue-step"></span>
+      <div id="boss-dialogue-text"></div>
+      <button id="btn-boss-view-secret" style="display: none;"></button>
+      <button id="btn-boss-advance">CONTINUAR ▶</button>
+      <button id="btn-boss-next-shift" style="display: none;">SIGUIENTE TURNO</button>
+    </section>
+
+    <!-- Intermission Screen (Fallback) -->
+    <section id="intermission-screen" class="screen">
+      <h2 id="intermission-title"></h2>
+      <span id="intermission-speaker"></span>
+      <div id="intermission-body"></div>
+      <button id="btn-view-secret" style="display: none;"></button>
+      <button id="btn-advance-shift">SIGUIENTE TURNO</button>
+    </section>
+
+    <!-- Ending Cinematic Screen -->
+    <section id="ending-cinematic-screen" class="screen">
+      <canvas id="ending-canvas"></canvas>
+      <span id="ending-cinematic-badge"></span>
+      <span id="ending-cinematic-location"></span>
+      <span id="ending-speaker-name"></span>
+      <span id="ending-dialogue-step"></span>
+      <div id="ending-dialogue-text"></div>
+      <button id="btn-ending-advance">CONTINUAR ▶</button>
+      <button id="btn-ending-to-audit" style="display: none;">VER AUDITORÍA</button>
+    </section>
+
+    <!-- Ending Screen -->
+    <section id="ending-screen" class="screen">
+      <div id="ending-title-badge"></div>
+      <div id="ending-narrative-text"></div>
+      <span id="stat-admitted"></span>
+      <span id="stat-rejected"></span>
+      <span id="stat-lina-followed"></span>
+      <span id="stat-lina-questioned"></span>
+      <span id="stat-unjustified-rejects"></span>
+      <span id="stat-secrets-found"></span>
+      <button id="btn-restart-ending">REINICIAR</button>
+    </section>
+
+    <!-- Modals -->
+    <div id="doc-modal" class="modal-overlay">
+      <div class="modal-close-btn"></div>
+      <h3 id="modal-doc-title"></h3>
+      <span id="modal-doc-type"></span>
+      <div id="doc-photo-area"><canvas id="modal-doc-photo" width="64" height="64"></canvas></div>
+      <div id="modal-doc-fields"></div>
+      <div id="modal-doc-barcode"></div>
+      <div id="modal-doc-stamp"></div>
+    </div>
+
+    <div id="secret-modal" class="modal-overlay">
+      <div class="modal-close-btn"></div>
+      <h2 id="secret-title-label"></h2>
+      <div id="secret-meta-line"></div>
+      <div id="secret-body-content"></div>
+      <div id="secret-stamp-label"></div>
+    </div>
+
+    <div id="help-modal" class="modal-overlay">
+      <div class="modal-close-btn"></div>
+    </div>
+
+    <div id="game-toast"></div>
+  </div>
+
+  <!-- Scripts in exact order -->
+  <script src="js/audio.js"></script>
+  <script src="js/cases-data.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/pixel-renderer.js"></script>
+  <script src="js/lina-system.js"></script>
+  <script src="js/narrative.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+
+  <script>
+    const testLog = [];
+    function logTest(name, passed, detail) {
+      testLog.push({ name, passed, detail });
+    }
+
+    try {
+      // 0. Explicitly initialize systems
+      window.pixelRenderer.initCanvases(
+        'title-canvas',
+        'person-canvas',
+        'lina-avatar-canvas',
+        'boss-canvas',
+        'dialogue-portrait-canvas'
+      );
+      window.linaSystem.init({
+        terminalEl: document.getElementById('lina-terminal-screen'),
+        progressBar: document.getElementById('scan-progress-fill'),
+        progressBox: document.getElementById('scan-progress-box'),
+        telemetryText: document.getElementById('telemetry-text'),
+        resultBox: document.getElementById('lina-result-box'),
+        consultBtn: document.getElementById('btn-consult-lina'),
+        avatarContainer: document.getElementById('lina-avatar-container'),
+        statusBadge: document.getElementById('lina-avatar-badge')
+      });
+      window.ui.init();
+      window.ui.showScreen('title');
+
+      // 1. Initial State
+      logTest("E2E 1: UIController inicializado", window.ui instanceof UIController);
+      logTest("E2E 2: Pantalla inicial es Title", window.ui.currentScreen === 'title');
+
+      // 2. Click New Game -> Intro Screen
+      document.getElementById('btn-new-game').click();
+      logTest("E2E 3: Transición a Intro Screen al iniciar partida", window.ui.currentScreen === 'intro');
+      logTest("E2E 4: Texto de introducción cargado", document.getElementById('intro-body').innerText.length > 30);
+
+      // 3. Click Start Intro -> Gameplay Screen
+      document.getElementById('btn-start-intro').click();
+      logTest("E2E 5: Transición a Gameplay Screen", window.ui.currentScreen === 'gameplay');
+
+      // 4. Initial Case 1 (Elena Ruiz) Dialogue Verification
+      const textEl = document.getElementById('dialogue-text-content');
+      const advBtn = document.getElementById('btn-dialogue-advance');
+      logTest("E2E 6: Elemento de diálogo de visitante existe", Boolean(textEl));
+      logTest("E2E 7: Botón de continuar existe y está en DOM", Boolean(advBtn));
+
+      // Wait / check typewriter content
+      const fullCase1P1Text = window.GAME_CASES[0].dialoguePhases[0].text;
+      logTest("E2E 8: Texto inicial de Elena Ruiz se está escribiendo", window.ui.visitorFullText === fullCase1P1Text);
+
+      // Helper to simulate deliberate player clicks
+      function clickAdvance() {
+        window.ui.lastDialogueClickTime = 0;
+        advBtn.click();
+      }
+
+      // Click button while typing -> finishes line immediately
+      clickAdvance();
+      logTest("E2E 9: Primera pulsación completa el texto inmediatamente", textEl.innerText.trim() === fullCase1P1Text.trim());
+      logTest("E2E 10: Escritura finalizada (visitorTyping = false)", !window.ui.visitorTyping);
+
+      // Phase 1 -> Phase 2 (Entrega DNI)
+      clickAdvance();
+      const p2 = window.gameState.getCaseDialoguePhase('case-1');
+      logTest("E2E 11: Segunda pulsación avanza a Fase 2 (Entrega DNI)", p2 === 2);
+      
+      // Complete phase 2 text
+      clickAdvance();
+      const trayCardsP2 = document.querySelectorAll('#docs-tray .doc-item-card');
+      logTest("E2E 12: DNI físico entregado en el escritorio en Fase 2", trayCardsP2.length === 1);
+
+      // Phase 2 -> Phase 3 -> Phase 4 (Registro de trabajo)
+      clickAdvance(); // advance to 3
+      clickAdvance(); // complete 3
+      clickAdvance(); // advance to 4 (Work record)
+      clickAdvance(); // complete 4
+      const trayCardsP4 = document.querySelectorAll('#docs-tray .doc-item-card');
+      logTest("E2E 13: Registro de trabajo entregado en Fase 4", trayCardsP4.length === 2);
+
+      // Phase 4 -> Phase 5 -> Phase 6 (Certificado de seguridad)
+      clickAdvance(); // advance to 5
+      clickAdvance(); // complete 5
+      clickAdvance(); // advance to 6 (Security certificate)
+      clickAdvance(); // complete 6
+      const trayCardsP6 = document.querySelectorAll('#docs-tray .doc-item-card');
+      logTest("E2E 14: Certificado de seguridad entregado en Fase 6", trayCardsP6.length === 3);
+
+      // Phase 6 -> Phase 7 (Finalización y apertura de inspección)
+      clickAdvance(); // advance to 7
+      clickAdvance(); // complete 7
+      const p7 = window.gameState.getCaseDialoguePhase('case-1');
+      logTest("E2E 15: Alcanzada Fase 7 de inspección activa", p7 === 7);
+
+      const btnAdmit = document.getElementById('btn-decision-admit');
+      const btnReject = document.getElementById('btn-decision-reject');
+      logTest("E2E 16: Botones de decisión habilitados en Fase 7", !btnAdmit.disabled && !btnReject.disabled);
+
+      // 5. Document Inspection Modal
+      trayCardsP6[0].click(); // Click DNI
+      logTest("E2E 17: Modal de documento se abre al inspeccionar", document.getElementById('doc-modal').classList.contains('active'));
+      logTest("E2E 18: Título de documento modal correcto", document.getElementById('modal-doc-title').innerText === "Documento de identidad");
+      document.querySelector('#doc-modal .modal-close-btn').click();
+      logTest("E2E 19: Modal de documento se cierra", !document.getElementById('doc-modal').classList.contains('active'));
+
+      // 6. Consult LINA Avatar
+      window.linaSystem.handleConsult();
+      logTest("E2E 20: Avatar de LINA inicia escaneo (estado 'analyzing')", window.linaSystem.isAnalyzing && window.pixelRenderer.linaState === 'analyzing');
+
+      // 7. Test All Cases Decision Flow & Transitions
+      // Fast advance helper for a whole case
+      function completeVisitorDialogue() {
+        for (let ph = 1; ph <= 7; ph++) {
+          window.ui.lastDialogueClickTime = 0;
+          if (window.ui.visitorTyping) {
+            window.ui.handleAdvanceVisitorDialogue(); // complete text
+          }
+          if (ph < 7) {
+            window.ui.lastDialogueClickTime = 0;
+            window.ui.handleAdvanceVisitorDialogue(); // advance to next phase
+          }
+        }
+      }
+
+      // Complete Case 1 and trigger decision
+      completeVisitorDialogue();
+      window.ui.handleDecision('ADMIT');
+      logTest("E2E 21: Decisión en Caso 1 registrada (Elena admitida)", window.gameState.getCaseState('case-1').decision === 'ADMIT');
+
+      // Now test Shift 1 transition: Day Summary & Boss Scene
+      window.ui.showDaySummaryScreen(1);
+      logTest("E2E 22: Informe institucional del Día 1 se presenta correctamente", window.ui.currentScreen === 'day-summary');
+      logTest("E2E 23: Título de informe contiene 'JORNADA 1'", document.getElementById('day-summary-title').innerText.includes("JORNADA 1"));
+
+      // Click to proceed to Boss Scene
+      document.getElementById('btn-proceed-to-boss').click();
+      logTest("E2E 24: Transición al Despacho de Supervisión de José", window.ui.currentScreen === 'boss-scene');
+      logTest("E2E 25: José inicia diálogo en su despacho", document.getElementById('boss-speaker-name').innerText.includes("JOSÉ"));
+
+      // Advance Boss dialogue lines to completion
+      while (window.ui.bossDialogueIndex < window.ui.bossDialogues.length - 1) {
+        window.ui.finishBossTyping();
+        window.ui.handleAdvanceBossDialogue();
+      }
+      window.ui.finishBossTyping();
+      const nextShiftBtn = document.getElementById('btn-boss-next-shift');
+      logTest("E2E 26: Botón de siguiente turno habilitado al finalizar la reunión con José", nextShiftBtn.style.display !== 'none');
+
+      // Click next shift button -> Enters Shift 2
+      nextShiftBtn.click();
+      logTest("E2E 27: Inicio de Turno 2 en cabina de inspección", window.ui.currentScreen === 'gameplay');
+
+      // Test Cinematic Ending Workflow
+      window.ui.showEndingCinematic();
+      logTest("E2E 28: Transición cinematográfica al desenlace final", window.ui.currentScreen === 'ending-cinematic');
+      logTest("E2E 29: Guion de desenlace cargado con localización y título", document.getElementById('ending-cinematic-badge').innerText.length > 3);
+      logTest("E2E 30: Primer parlamento cinematográfico presentado con máquina de escribir", window.ui.endingTyping || document.getElementById('ending-dialogue-text').innerText.length > 5);
+
+      // Advance cinematic beats to completion
+      const btnEndAdv = document.getElementById('btn-ending-advance');
+      const btnEndToAudit = document.getElementById('btn-ending-to-audit');
+      while (window.ui.endingBeatIndex < window.ui.endingBeats.length - 1) {
+        window.ui.finishEndingTyping();
+        btnEndAdv.click();
+      }
+      window.ui.finishEndingTyping();
+      logTest("E2E 31: Botón para acceder a auditoría final habilitado al concluir la secuencia", btnEndToAudit.style.display !== 'none');
+
+      // Click to transition to final audit screen
+      btnEndToAudit.click();
+      logTest("E2E 32: Transición a pantalla de auditoría y estadísticas finales", window.ui.currentScreen === 'ending');
+      logTest("E2E 33: Final evaluado y título oficial de la resolución visible", document.getElementById('ending-title-badge').innerText.length > 5);
+      logTest("E2E 34: Estadísticas de auditoría integran la escala de casos", document.getElementById('stat-lina-followed').innerText.includes("/ " + window.GAME_CASES.length));
+
+      // Test Early Endings
+      window.gameState.clearSave();
+      window.gameState.history.push({ caseId: 'case-16', decision: 'ADMIT', shift: 2 });
+      const earlyCat = window.NARRATIVE.checkEarlyEndings(window.gameState);
+      logTest("E2E 36: Final temprano Catástrofe se activa al admitir a Karek Vance", earlyCat && earlyCat.id === 'ending-catastrophe');
+
+      window.gameState.clearSave();
+      window.gameState.history.push({ caseId: 'case-13', decision: 'ADMIT', shift: 3 });
+      window.gameState.history.push({ caseId: 'case-17', decision: 'ADMIT', shift: 3 });
+      const earlyReb = window.NARRATIVE.checkEarlyEndings(window.gameState);
+      logTest("E2E 37: Final temprano Golpe de Estado se activa al admitir a Renata y Dante", earlyReb && earlyReb.id === 'ending-rebellion');
+
+      window.gameState.clearSave();
+      window.gameState.history.push({ caseId: 'case-1', decision: 'REJECT', shift: 1 });
+      window.gameState.history.push({ caseId: 'case-2', decision: 'REJECT', shift: 1 });
+      window.gameState.history.push({ caseId: 'case-3', decision: 'REJECT', shift: 2 });
+      window.gameState.history.push({ caseId: 'case-11', decision: 'REJECT', shift: 3 });
+      const earlyFired = window.NARRATIVE.checkEarlyEndings(window.gameState);
+      logTest("E2E 38: Final temprano Despido se activa al rechazar sistemáticamente a personal vital", earlyFired && earlyFired.id === 'ending-fired');
+
+      // Test restart game from ending
+      document.getElementById('btn-restart-ending').click();
+      logTest("E2E 39: Reinicio de partida regresa a Title Screen", window.ui.currentScreen === 'title');
+
+      // Render Results
+      let html = "<h2>Resultados de Simulación E2E:</h2><ul>";
+      let allPassed = true;
+      testLog.forEach(t => {
+        if (!t.passed) allPassed = false;
+        html += `<li style="color: ${t.passed ? '#55c97d' : '#e55353'}">${t.passed ? '✓ PASS' : '✗ FAIL'}: ${t.name}</li>`;
+      });
+      html += `</ul><h3>${allPassed ? 'ESTADO: SIMULACIÓN E2E COMPLETADA CON ÉXITO (' + testLog.length + '/' + testLog.length + ')' : 'ESTADO: FALLO EN SIMULACIÓN'}</h3>`;
+      document.getElementById('test-results').innerHTML = html;
+
+    } catch (err) {
+      let errHtml = `<h2 style="color: red">EXCEPCIÓN EN TEST E2E: ${err.message}</h2><pre>${err.stack}</pre><h3>Log antes del fallo:</h3><ul>`;
+      testLog.forEach(t => {
+        errHtml += `<li style="color: ${t.passed ? '#55c97d' : '#e55353'}">${t.passed ? '✓ PASS' : '✗ FAIL'}: ${t.name} (detail: ${t.detail})</li>`;
+      });
+      errHtml += `</ul>`;
+      document.getElementById('test-results').innerHTML = errHtml;
+    }
+  </script>
+</body>
+</html>

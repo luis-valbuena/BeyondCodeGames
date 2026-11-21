@@ -1,4 +1,4 @@
-/**
+﻿/**
  * UNDER SURVEILLANCE — Beyond Code Games
  * LINA AI Terminal Logic & Algorithmic Perception Alteration Controller
  * 

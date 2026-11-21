@@ -63,16 +63,41 @@
          SCREEN 2: NARRATIVE INTRO / BRIEFING
          ==================================================================== -->
     <section id="intro-screen" class="screen">
-      <div class="briefing-box">
-        <div class="briefing-header">
-          <h2 id="intro-title">PROTOCOLO DE ENTRADA</h2>
-          <span class="briefing-speaker" id="intro-speaker">SUPERVISIÓN // JOSÉ</span>
+      <div class="intro-cinematic-wrapper">
+        <div class="intro-cinematic-header">
+          <div class="intro-location-tag">
+            <span class="rec-dot" style="margin-right: 6px;"></span>
+            <span id="intro-cinematic-location">PUESTO DE CONTROL FRONTERIZO NORTE // 05:45 AM</span>
+          </div>
+          <div class="intro-beat-counter" id="intro-beat-counter">SECUENCIA 1 / 4</div>
         </div>
-        <div class="briefing-body" id="intro-body">
-          <!-- Populated dynamically via narrative.js -->
+
+        <div class="intro-scene-viewport">
+          <canvas id="intro-canvas"></canvas>
+          <div class="intro-scene-overlay">
+            <span class="badge-tag highlight">ARRIBO DE GUARDIA</span>
+          </div>
         </div>
-        <div class="briefing-actions">
-          <button id="btn-start-intro" class="btn-pixel">INGRESAR A LA CABINA</button>
+
+        <div class="intro-dialogue-console">
+          <div class="intro-dialogue-header">
+            <span class="intro-speaker-badge" id="intro-speaker-name">Narrador</span>
+            <span class="intro-audio-indicator" style="font-size: 11px; color: var(--col-muted-green);">CANAL SEGURO DE COMUNICACIÓN</span>
+          </div>
+          <div class="intro-dialogue-body">
+            <p id="intro-dialogue-text" class="intro-dialogue-text"></p>
+          </div>
+          <div class="intro-dialogue-actions">
+            <button id="btn-intro-advance" class="btn-pixel btn-intro-advance">CONTINUAR [ESPACIO] ▶</button>
+            <button id="btn-start-intro" class="btn-pixel btn-start-intro" style="display: none; border-color: var(--col-muted-green); background: #162a20;">INGRESAR A LA CABINA DE CONTROL ▶</button>
+          </div>
+        </div>
+
+        <!-- Elementos de compatibilidad retroactiva con suites de prueba automatizadas -->
+        <div style="display: none;">
+          <h2 id="intro-title"></h2>
+          <span id="intro-speaker"></span>
+          <div id="intro-body"></div>
         </div>
       </div>
     </section>
@@ -299,7 +324,42 @@
     </section>
 
     <!-- ====================================================================
-         SCREEN 7: ENDING & AUDIT SCREEN
+         SCREEN 7A: ENDING CINEMATIC SCENE (PUESTA EN ESCENA CINEMATOGRÁFICA)
+         ==================================================================== -->
+    <section id="ending-cinematic-screen" class="screen">
+      <div class="ending-cinematic-wrapper">
+        <div class="ending-scene-viewport">
+          <canvas id="ending-canvas"></canvas>
+          <div class="ending-scene-overlay">
+            <span class="badge-tag highlight" id="ending-cinematic-badge">DESENLACE</span>
+            <span class="badge-tag alert" id="ending-cinematic-location">ASTER // PROTOCOLO FINAL</span>
+          </div>
+        </div>
+
+        <div class="ending-dialogue-console">
+          <div class="ending-dialogue-header">
+            <span class="briefing-speaker" id="ending-speaker-name">NARRADOR</span>
+            <span class="ending-dialogue-step" id="ending-dialogue-step">ESCENA 1 / 5</span>
+          </div>
+
+          <div class="ending-dialogue-body" id="ending-dialogue-text">
+            <!-- Typewriter ending dialogue -->
+          </div>
+
+          <div class="ending-dialogue-actions">
+            <button id="btn-ending-advance" class="btn-dialogue-advance">
+              CONTINUAR [ESPACIO] ▶
+            </button>
+            <button id="btn-ending-to-audit" class="btn-pixel" style="display: none;">
+              VER AUDITORÍA FINAL Y ESTADÍSTICAS ▶
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SCREEN 7B: ENDING & AUDIT SCREEN
          ==================================================================== -->
     <section id="ending-screen" class="screen">
       <div class="ending-box">
@@ -320,11 +380,11 @@
           </div>
           <div class="stat-item">
             <span class="stat-label">DICTÁMENES DE LINA SEGUIDOS:</span>
-            <span class="stat-val" id="stat-lina-followed">0 / 7</span>
+            <span class="stat-val" id="stat-lina-followed">0 / 15</span>
           </div>
           <div class="stat-item">
             <span class="stat-label">DICTÁMENES CUESTIONADOS:</span>
-            <span class="stat-val warn" id="stat-lina-questioned">0 / 7</span>
+            <span class="stat-val warn" id="stat-lina-questioned">0 / 15</span>
           </div>
           <div class="stat-item">
             <span class="stat-label">RECHAZOS INJUSTIFICADOS:</span>

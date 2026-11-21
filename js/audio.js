@@ -23,6 +23,8 @@ class SoundEngine {
     // Ambient loop nodes
     this.droneNodes = [];
     this.noiseNode = null;
+    this.endingBgmNodes = [];
+    this.endingBgmTimer = null;
     
     // Typewriter throttle
     this.lastTypeTime = 0;
@@ -644,6 +646,7 @@ class SoundEngine {
   }
 
   stopBGM() {
+    this.stopEndingBGM();
     if (!this.isBgmRunning) return;
 
     this.droneNodes.forEach(obj => {
@@ -662,6 +665,387 @@ class SoundEngine {
     }
 
     this.isBgmRunning = false;
+  }
+
+  // =========================================================================
+  // CINEMATIC ENDING ATMOSPHERIC SOUNDSCAPES (Web Audio Synthesizer)
+  // Tailored audio moods for each of the 4 narrative conclusions
+  // =========================================================================
+  startIntroBGM() {
+    this.stopBGM();
+    this.stopEndingBGM();
+    this.ensureContext();
+    if (!this.ctx) return;
+
+    const t = this.ctx.currentTime;
+    this.endingBgmNodes = [];
+
+    // Low dawn mist drone (55 Hz and 110 Hz warm sines)
+    const freqs = [55.0, 110.0, 164.81];
+    freqs.forEach((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      const filter = this.ctx.createBiquadFilter();
+      const gain = this.ctx.createGain();
+
+      osc.type = (idx === 0) ? 'sine' : 'triangle';
+      osc.frequency.setValueAtTime(freq, t);
+
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(220, t);
+
+      gain.gain.setValueAtTime(idx === 0 ? 0.16 : 0.06, t);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.bgmGain);
+
+      osc.start(t);
+      this.endingBgmNodes.push({ osc, gain });
+    });
+
+    // Soft morning wind whisper
+    try {
+      const bufferSize = this.ctx.sampleRate * 2;
+      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * 0.05;
+      }
+      const noise = this.ctx.createBufferSource();
+      noise.buffer = buffer;
+      noise.loop = true;
+
+      const nFilter = this.ctx.createBiquadFilter();
+      nFilter.type = 'bandpass';
+      nFilter.frequency.setValueAtTime(380, t);
+      nFilter.Q.setValueAtTime(1.2, t);
+
+      const nGain = this.ctx.createGain();
+      nGain.gain.setValueAtTime(0.025, t);
+
+      noise.connect(nFilter);
+      nFilter.connect(nGain);
+      nGain.connect(this.bgmGain);
+
+      noise.start(t);
+      this.endingBgmNodes.push({ osc: noise, gain: nGain });
+    } catch (e) {}
+  }
+  startEndingBGM(endingId) {
+    this.stopBGM();
+    this.stopEndingBGM();
+    this.ensureContext();
+    if (!this.ctx) return;
+
+    const t = this.ctx.currentTime;
+    this.endingBgmNodes = [];
+
+    if (endingId === 'ending-1') {
+      // ENDING 1: Crystalline sterile corporate drone + periodic glass chime
+      const freqs = [220.0, 329.6, 440.0, 554.3];
+      freqs.forEach((freq, idx) => {
+        const osc = this.ctx.createOscillator();
+        const filter = this.ctx.createBiquadFilter();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, t);
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(650, t);
+
+        gain.gain.setValueAtTime(idx === 0 ? 0.12 : 0.05, t);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.bgmGain);
+
+        osc.start(t);
+        this.endingBgmNodes.push({ osc, gain });
+      });
+
+      // Subtle institutional glass bell chime every 4 seconds
+      this.endingBgmTimer = setInterval(() => {
+        if (!this.ctx || this.isMuted) return;
+        const chimeT = this.ctx.currentTime;
+        const cOsc = this.ctx.createOscillator();
+        const cGain = this.ctx.createGain();
+        cOsc.type = 'sine';
+        cOsc.frequency.setValueAtTime(880, chimeT);
+        cOsc.frequency.exponentialRampToValueAtTime(1320, chimeT + 0.05);
+
+        cGain.gain.setValueAtTime(0.04, chimeT);
+        cGain.gain.exponentialRampToValueAtTime(0.0001, chimeT + 1.2);
+
+        cOsc.connect(cGain);
+        cGain.connect(this.sfxGain);
+        cOsc.start(chimeT);
+        cOsc.stop(chimeT + 1.2);
+      }, 4200);
+
+    } else if (endingId === 'ending-2') {
+      // ENDING 2: Subterranean heavy 44 Hz rumble + cavernous water droplet echoes
+      const freqs = [43.65, 65.41, 87.31];
+      freqs.forEach((freq, idx) => {
+        const osc = this.ctx.createOscillator();
+        const filter = this.ctx.createBiquadFilter();
+        const gain = this.ctx.createGain();
+
+        osc.type = (idx === 0) ? 'sine' : 'triangle';
+        osc.frequency.setValueAtTime(freq, t);
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(95, t);
+
+        gain.gain.setValueAtTime(idx === 0 ? 0.22 : 0.08, t);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.bgmGain);
+
+        osc.start(t);
+        this.endingBgmNodes.push({ osc, gain });
+      });
+
+      // Water droplet blip every 2.6 seconds
+      this.endingBgmTimer = setInterval(() => {
+        if (!this.ctx || this.isMuted) return;
+        const dropT = this.ctx.currentTime;
+        const dOsc = this.ctx.createOscillator();
+        const dGain = this.ctx.createGain();
+        dOsc.type = 'sine';
+        dOsc.frequency.setValueAtTime(620, dropT);
+        dOsc.frequency.exponentialRampToValueAtTime(320, dropT + 0.04);
+
+        dGain.gain.setValueAtTime(0.035, dropT);
+        dGain.gain.exponentialRampToValueAtTime(0.0005, dropT + 0.35);
+
+        dOsc.connect(dGain);
+        dGain.connect(this.sfxGain);
+        dOsc.start(dropT);
+        dOsc.stop(dropT + 0.35);
+      }, 2600);
+
+    } else if (endingId === 'ending-3') {
+      // ENDING 3: Warm, emotional ascending major pad progression + gentle dawn wind
+      const chords = [130.81, 164.81, 196.0, 261.63]; // C major
+      chords.forEach((freq, idx) => {
+        const osc = this.ctx.createOscillator();
+        const filter = this.ctx.createBiquadFilter();
+        const lfo = this.ctx.createOscillator();
+        const lfoGain = this.ctx.createGain();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, t);
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(320, t);
+
+        lfo.frequency.setValueAtTime(0.05 + idx * 0.02, t);
+        lfoGain.gain.setValueAtTime(25, t);
+        lfo.connect(lfoGain);
+        lfoGain.connect(filter.frequency);
+
+        gain.gain.setValueAtTime(0.12, t);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.bgmGain);
+
+        osc.start(t);
+        lfo.start(t);
+        this.endingBgmNodes.push({ osc, lfo, gain });
+      });
+
+    } else if (endingId === 'ending-4') {
+      // ENDING 4: Noir dark tritone drone + subtle fire crackle synthesis
+      const freqs = [58.27, 82.41, 116.54]; // Bb and E (tritone)
+      freqs.forEach((freq, idx) => {
+        const osc = this.ctx.createOscillator();
+        const filter = this.ctx.createBiquadFilter();
+        const gain = this.ctx.createGain();
+
+        osc.type = (idx === 0) ? 'sawtooth' : 'sine';
+        osc.frequency.setValueAtTime(freq, t);
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(140, t);
+
+        gain.gain.setValueAtTime(idx === 0 ? 0.06 : 0.14, t);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.bgmGain);
+
+        osc.start(t);
+        this.endingBgmNodes.push({ osc, gain });
+      });
+
+      // Fire crackle noise bursts every 800ms
+      this.endingBgmTimer = setInterval(() => {
+        if (!this.ctx || this.isMuted) return;
+        const crackleT = this.ctx.currentTime;
+        const bufferSize = Math.floor(this.ctx.sampleRate * 0.04);
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * 0.15;
+        }
+        const cSource = this.ctx.createBufferSource();
+        cSource.buffer = buffer;
+        const cFilter = this.ctx.createBiquadFilter();
+        cFilter.type = 'highpass';
+        cFilter.frequency.setValueAtTime(1200, crackleT);
+
+        const cGain = this.ctx.createGain();
+        cGain.gain.setValueAtTime(0.02, crackleT);
+        cGain.gain.exponentialRampToValueAtTime(0.001, crackleT + 0.04);
+
+        cSource.connect(cFilter);
+        cFilter.connect(cGain);
+        cGain.connect(this.sfxGain);
+        cSource.start(crackleT);
+      }, 750);
+    } else if (endingId === 'ending-catastrophe') {
+      // CATASTROPHE: Heavy sub-bass earthquake rumble + emergency siren oscillation
+      const oscSub = this.ctx.createOscillator();
+      const filterSub = this.ctx.createBiquadFilter();
+      const gainSub = this.ctx.createGain();
+
+      oscSub.type = 'sawtooth';
+      oscSub.frequency.setValueAtTime(36.7, t); // D1
+      filterSub.type = 'lowpass';
+      filterSub.frequency.setValueAtTime(90, t);
+      gainSub.gain.setValueAtTime(0.18, t);
+
+      oscSub.connect(filterSub);
+      filterSub.connect(gainSub);
+      gainSub.connect(this.bgmGain);
+      oscSub.start(t);
+      this.endingBgmNodes.push({ osc: oscSub, gain: gainSub });
+
+      // Pulsing siren drone
+      this.endingBgmTimer = setInterval(() => {
+        if (!this.ctx || this.isMuted) return;
+        const sT = this.ctx.currentTime;
+        const sOsc = this.ctx.createOscillator();
+        const sGain = this.ctx.createGain();
+        sOsc.type = 'sine';
+        sOsc.frequency.setValueAtTime(440, sT);
+        sOsc.frequency.exponentialRampToValueAtTime(330, sT + 0.9);
+
+        sGain.gain.setValueAtTime(0.045, sT);
+        sGain.gain.exponentialRampToValueAtTime(0.001, sT + 0.95);
+
+        sOsc.connect(sGain);
+        sGain.connect(this.sfxGain);
+        sOsc.start(sT);
+        sOsc.stop(sT + 0.95);
+      }, 1400);
+
+    } else if (endingId === 'ending-rebellion') {
+      // REBELLION: Dynamic marching cadence drone + radio frequency static bursts
+      const freqs = [73.42, 110.0, 146.83]; // D minor fifths
+      freqs.forEach((freq, idx) => {
+        const osc = this.ctx.createOscillator();
+        const filter = this.ctx.createBiquadFilter();
+        const gain = this.ctx.createGain();
+
+        osc.type = (idx === 0) ? 'triangle' : 'sawtooth';
+        osc.frequency.setValueAtTime(freq, t);
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(260, t);
+
+        gain.gain.setValueAtTime(idx === 0 ? 0.14 : 0.05, t);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.bgmGain);
+
+        osc.start(t);
+        this.endingBgmNodes.push({ osc, gain });
+      });
+
+      // Periodic tactical radio sweep every 3 seconds
+      this.endingBgmTimer = setInterval(() => {
+        if (!this.ctx || this.isMuted) return;
+        const rT = this.ctx.currentTime;
+        const rOsc = this.ctx.createOscillator();
+        const rGain = this.ctx.createGain();
+        rOsc.type = 'square';
+        rOsc.frequency.setValueAtTime(587.33, rT); // D5
+        rOsc.frequency.setValueAtTime(659.25, rT + 0.1);
+        rOsc.frequency.setValueAtTime(880.0, rT + 0.2);
+
+        rGain.gain.setValueAtTime(0.02, rT);
+        rGain.gain.exponentialRampToValueAtTime(0.0005, rT + 0.35);
+
+        rOsc.connect(rGain);
+        rGain.connect(this.sfxGain);
+        rOsc.start(rT);
+        rOsc.stop(rT + 0.35);
+      }, 2900);
+
+    } else if (endingId === 'ending-fired') {
+      // FIRED: Power-down descending sweep + dead cold administrative hum
+      const osc = this.ctx.createOscillator();
+      const filter = this.ctx.createBiquadFilter();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(320, t);
+      osc.frequency.exponentialRampToValueAtTime(48, t + 2.5); // Downward shutdown
+
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(180, t);
+
+      gain.gain.setValueAtTime(0.12, t);
+      gain.gain.linearRampToValueAtTime(0.05, t + 2.5);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.bgmGain);
+
+      osc.start(t);
+      this.endingBgmNodes.push({ osc, gain });
+
+      // Low rejection buzzer pulse
+      this.endingBgmTimer = setInterval(() => {
+        if (!this.ctx || this.isMuted) return;
+        const bT = this.ctx.currentTime;
+        const bOsc = this.ctx.createOscillator();
+        const bGain = this.ctx.createGain();
+        bOsc.type = 'triangle';
+        bOsc.frequency.setValueAtTime(75, bT);
+
+        bGain.gain.setValueAtTime(0.04, bT);
+        bGain.gain.exponentialRampToValueAtTime(0.0001, bT + 0.6);
+
+        bOsc.connect(bGain);
+        bGain.connect(this.sfxGain);
+        bOsc.start(bT);
+        bOsc.stop(bT + 0.6);
+      }, 3500);
+    }
+  }
+
+  stopEndingBGM() {
+    if (this.endingBgmTimer) {
+      clearInterval(this.endingBgmTimer);
+      this.endingBgmTimer = null;
+    }
+
+    if (this.endingBgmNodes && this.endingBgmNodes.length > 0) {
+      this.endingBgmNodes.forEach(obj => {
+        try {
+          if (obj.osc) obj.osc.stop();
+          if (obj.lfo) obj.lfo.stop();
+        } catch (e) {}
+      });
+      this.endingBgmNodes = [];
+    }
   }
 }
 

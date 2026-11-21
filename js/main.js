@@ -15,7 +15,9 @@ document.addEventListener('DOMContentLoaded', () => {
     'person-canvas',
     'lina-avatar-canvas',
     'boss-canvas',
-    'dialogue-portrait-canvas'
+    'dialogue-portrait-canvas',
+    'ending-canvas',
+    'intro-canvas'
   );
 
   // 2. Initialize LINA AI terminal & interactive avatar elements

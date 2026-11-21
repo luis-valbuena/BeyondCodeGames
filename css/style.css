@@ -278,7 +278,130 @@ html, body {
 /* ==========================================================================
    BRIEFING BOX / NARRATIVE INTRO
    ========================================================================== */
-#intro-screen, #intermission-screen, #ending-screen {
+/* ==========================================================================
+   CINEMATIC INTRO SCREEN (Secuencia de llegada al Puesto Norte)
+   ========================================================================== */
+#intro-screen {
+  background: var(--col-dark-blue-deep);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.intro-cinematic-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+}
+
+.intro-cinematic-header {
+  height: 38px;
+  background: #0f1522;
+  border-bottom: 2px solid var(--col-dark-blue);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+  font-family: var(--font-tech);
+}
+
+.intro-location-tag {
+  display: flex;
+  align-items: center;
+  font-size: 11px;
+  color: var(--col-warm-white);
+  letter-spacing: 1px;
+}
+
+.intro-beat-counter {
+  font-size: 11px;
+  color: var(--col-orange);
+  font-weight: bold;
+}
+
+.intro-scene-viewport {
+  height: 52%;
+  position: relative;
+  background: #080d16;
+  overflow: hidden;
+  border-bottom: 2px solid var(--col-dark-blue);
+}
+
+#intro-canvas {
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.intro-scene-overlay {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  display: flex;
+  gap: 10px;
+  z-index: 10;
+}
+
+.intro-dialogue-console {
+  height: 48%;
+  background: #101622;
+  padding: 14px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.intro-dialogue-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px dashed var(--col-dark-blue-light);
+  padding-bottom: 6px;
+}
+
+.intro-speaker-badge {
+  background: var(--col-dark-blue);
+  border: 1px solid var(--col-orange);
+  color: var(--col-orange);
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.intro-dialogue-body {
+  flex: 1;
+  background: #0a0e17;
+  border: 1px solid var(--col-dark-blue-light);
+  border-left: 4px solid var(--col-orange);
+  padding: 14px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--col-warm-white);
+  font-family: var(--font-tech);
+  overflow-y: auto;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.7);
+}
+
+.intro-dialogue-text {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.intro-dialogue-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+  align-items: center;
+}
+
+#intermission-screen, #ending-screen {
   background: var(--col-dark-blue-deep);
   padding: 30px 40px;
   display: flex;
@@ -1275,6 +1398,94 @@ html, body {
 }
 
 .boss-dialogue-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+  align-items: center;
+}
+
+/* ==========================================================================
+   CINEMATIC ENDING SCENE SCREEN (Puesta en escena cinematográfica)
+   ========================================================================== */
+#ending-cinematic-screen {
+  background: var(--col-dark-blue-deep);
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.ending-cinematic-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+}
+
+.ending-scene-viewport {
+  height: 54%;
+  position: relative;
+  background: #080d1a;
+  overflow: hidden;
+  border-bottom: 2px solid var(--col-dark-blue);
+}
+
+#ending-canvas {
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.ending-scene-overlay {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  display: flex;
+  gap: 10px;
+  z-index: 10;
+}
+
+.ending-dialogue-console {
+  height: 46%;
+  background: #101622;
+  padding: 14px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.ending-dialogue-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px dashed var(--col-dark-blue-light);
+  padding-bottom: 6px;
+}
+
+.ending-dialogue-step {
+  font-size: 11px;
+  color: var(--col-orange);
+  font-weight: bold;
+}
+
+.ending-dialogue-body {
+  flex: 1;
+  background: #0a0e17;
+  border: 1px solid var(--col-dark-blue-light);
+  border-left: 4px solid var(--col-orange);
+  padding: 14px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--col-warm-white);
+  font-family: var(--font-tech);
+  overflow-y: auto;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.7);
+}
+
+.ending-dialogue-actions {
   display: flex;
   justify-content: flex-end;
   gap: 14px;

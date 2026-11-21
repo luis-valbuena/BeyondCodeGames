@@ -25,6 +25,30 @@ const NARRATIVE = {
     buttonText: "COMENZAR TURNO 1"
   },
 
+  // Animated Cinematic Intro Scene Configuration
+  introCinematic: {
+    location: "PUESTO DE CONTROL FRONTERIZO NORTE // 05:45 AM",
+    soundTheme: "intro",
+    beats: [
+      {
+        speaker: "Narrador",
+        text: "La niebla fría del amanecer desciende sobre el Puesto de Acceso Norte. Los focos perimetrales barren el lodo y los alambrados de la muralla exterior de Aster. Tras semanas de rigurosa instrucción civil, el Inspector Alberto toma posesión de su cabina blindada."
+      },
+      {
+        speaker: "José",
+        text: "Alberto, acércate al interfono y activa tu credencial. Esta esclusa es el último filtro antes del corazón metropolitano. Cientos de personas llegarán hoy suplicando, exigiendo o mintiendo para cruzar. Tu deber no es sentir lástima: es aplicar la ley y mantener el orden."
+      },
+      {
+        speaker: "LINA",
+        text: "Iniciando terminal heurística de vigilancia LINA v3.4. Enlace biométrico establecido con el Operador Alberto. Analizaré expedientes, frecuencias cardíacas y registros cívicos para recomendar el curso de acción óptimo. Juntos garantizaremos el índice de amenaza cero."
+      },
+      {
+        speaker: "José",
+        text: "No cometas imprudencias, Alberto. El Consejo no tolera negligencias: si dejas pasar saboteadores o insurgentes armados, la ciudad arderá. Y si te limitas a pulsar el mismo botón a ciegas admitiendo o rechazando a todo el mundo sin examinar los documentos, Asuntos Internos te destituirá de inmediato. Revisa, verifica y decide con pulso de acero."
+      }
+    ]
+  },
+
   // Daily Shift Audit Reports (Informe de Cierre del Día)
   getDayReport: (shiftNumber, state) => {
     const summary = state.getShiftSummary(shiftNumber);
@@ -139,11 +163,24 @@ const NARRATIVE = {
 
       const case5 = shiftHistory.find(h => h.caseId === 'case-5');
       const case6 = shiftHistory.find(h => h.caseId === 'case-6');
+      const case13 = shiftHistory.find(h => h.caseId === 'case-13');
 
       if (case5 && case5.decision === 'ADMIT') {
         dialogues.push({
           speaker: "José",
           text: "Hiciste bien en dejar pasar a Chen. Sé que tiene antecedentes de contrabando, pero esos sensores biométricos son los que alimentan los ojos de LINA en la muralla. En política de seguridad, la utilidad manda."
+        });
+      }
+
+      if (case13 && case13.decision === 'REJECT') {
+        dialogues.push({
+          speaker: "José",
+          text: "Detectaste las contradicciones de la supuesta mensajera Renata Morales. Esa credencial de Serviexpress era una tapadera para propaganda subversiva. Excelente vista, Alberto."
+        });
+      } else if (case13 && case13.decision === 'ADMIT') {
+        dialogues.push({
+          speaker: "José",
+          text: "Dejaste pasar a Renata Morales con una orden de entrega vencida. Si esa mujer distribuye panfletos en el Sector Central, las consecuencias caerán sobre tu cabeza."
         });
       }
 
@@ -329,6 +366,100 @@ Mantendremos el protocolo sin modificaciones.
     return null;
   },
 
+  // Early Ending Detection Engine (Catastrophe, Rebellion & Negligence Dismissal)
+  checkEarlyEndings: (state) => {
+    if (!state || !state.history || state.history.length === 0) return null;
+
+    const history = state.history;
+
+    // 1. Catástrofe perimetral: admitir a Karek Vance (case-16) con explosivos
+    const admittedSaboteur = history.find(h => h.caseId === 'case-16' && h.decision === 'ADMIT');
+    if (admittedSaboteur) {
+      return {
+        id: "ending-catastrophe",
+        title: "FINAL EXTRA: CATÁSTROFE PERIMETRAL (SABOTAJE ENERGÉTICO)",
+        badgeClass: "bad",
+        narrative: `
+          Alberto pulsó ADMITIR ante Karek Vance a pesar de las alarmas críticas, la empresa clausurada y las discordancias de seguridad.
+          
+          Pocas horas después, las botellas de supuesta refrigeración resultaron contener trinitrotolueno de grado militar. La explosión destruyó por completo la Subestación Eléctrica 4, cortando la energía perimetral y desatando el caos en Aster.
+          
+          Las unidades armadas de contención irrumpieron en la cabina y apresaron a Alberto. Su imprudencia costó más de un centenar de vidas y sumió a la ciudad en una noche helada de fuegos e incertidumbre.
+        `,
+        reflection: "La condescendencia o descuido frente a amenazas letales no es empatía: es complicidad destructiva."
+      };
+    }
+
+    // 2. Golpe de Estado / Insurrección armada: admitir a Renata Morales (case-13) Y a Dante Navarro (case-17)
+    const admittedRenata = history.find(h => h.caseId === 'case-13' && h.decision === 'ADMIT');
+    const admittedDante = history.find(h => h.caseId === 'case-17' && h.decision === 'ADMIT');
+    if (admittedRenata && admittedDante) {
+      return {
+        id: "ending-rebellion",
+        title: "FINAL EXTRA: GOLPE DE ESTADO (INSURRECCIÓN POPULAR ARMADA)",
+        badgeClass: "warn",
+        narrative: `
+          Alberto abrió las compuertas de la ciudad primero a Renata Morales y posteriormente al comandante táctico Dante Navarro.
+          
+          Con el convoy logístico y los enlaces de coordinación dentro del perímetro, el Frente Libre ejecutó un asalto coordinado y fulminante sobre la central de transmisiones y la sede del Consejo Supremo. Las emisiones del régimen fueron cortadas y reemplazadas por proclamas de libertad civil.
+          
+          El viejo régimen cayó antes del amanecer. La ciudad entra en una nueva era donde los muros ya no deciden la dignidad de las personas, propiciada por dos firmas en la cabina de control.
+        `,
+        reflection: "Cuando las puertas de una fortaleza se abren desde dentro, las murallas pierden todo su sentido."
+      };
+    }
+
+    // 3. Despido fulminante por negligencia / Incompetencia (Castigo al spam indiscriminado)
+    const dangerCaseIds = ['case-10', 'case-16', 'case-17', 'case-12', 'case-4', 'case-6'];
+    const vitalCaseIds = ['case-1', 'case-2', 'case-3', 'case-11', 'case-15', 'case-8'];
+
+    if (history.length >= 4) {
+      const last4 = history.slice(-4);
+      const allAdmit = last4.every(h => h.decision === 'ADMIT');
+      const allReject = last4.every(h => h.decision === 'REJECT');
+
+      if (allAdmit) {
+        const recklessAdmits = last4.filter(h => dangerCaseIds.includes(h.caseId)).length;
+        if (recklessAdmits >= 2) {
+          return {
+            id: "ending-fired",
+            title: "FINAL EXTRA: DESTITUCIÓN FULMINANTE (NEGLIGENCIA BUROCRÁTICA)",
+            badgeClass: "bad",
+            narrative: `
+              El inspector Alberto adoptó la costumbre de pulsar ADMITIR ante cualquier visitante sin contrastar documentación, desoyendo alertas y dejando ingresar amenazas notorias para la seguridad pública.
+              
+              Los algoritmos de auditoría de Asuntos Internos detectaron el patrón de indolencia en tiempo real. Un escuadrón de la policía administrativa tomó por asalto la cabina, le arrancó la credencial y lo escoltó esposado a los calabozos.
+              
+              El puesto fue asignado a un nuevo operador. En Aster, la pereza y el automatismo ciego no se perdonan.
+            `,
+            reflection: "La indiferencia burocrática y el automatismo ciego destruyen la justicia tan eficazmente como la malicia deliberada."
+          };
+        }
+      }
+
+      if (allReject) {
+        const recklessRejects = last4.filter(h => vitalCaseIds.includes(h.caseId)).length;
+        if (recklessRejects >= 2) {
+          return {
+            id: "ending-fired",
+            title: "FINAL EXTRA: DESTITUCIÓN FULMINANTE (NEGLIGENCIA BUROCRÁTICA)",
+            badgeClass: "bad",
+            narrative: `
+              El inspector Alberto se limitó a pulsar RECHAZAR de manera sistemática contra toda persona que llegaba a la esclusa, bloqueando envíos de insulina médica, personal técnico de aguas y ciudadanos con acreditaciones impecables.
+              
+              El colapso de los suministros en el dispensario y la queja formal de los ministerios provocaron una auditoría fulminante de Asuntos Internos. José se presentó con dos oficiales de custodia: 'Cerrar la puerta a todo el mundo no es seguridad, Alberto; es cobardía e incompetencia absoluta.'
+              
+              Alberto fue despojado de su uniforme y destituido de forma deshonrosa sin derecho a apelación.
+            `,
+            reflection: "El miedo paralizante que rechaza a todos por sistema es la negación misma de la función inspectora."
+          };
+        }
+      }
+    }
+
+    return null;
+  },
+
   // Final calculation engine (Preserved 100% for the 4 endings)
   calculateEnding: (state) => {
     const finalChoice = state.finalDecision || 'REJECT';
@@ -415,6 +546,225 @@ Mantendremos el protocolo sin modificaciones.
       `,
       reflection: "Dudar en silencio de un sistema injusto sin atreverse a actuar nunca altera el destino de quienes son aplastados por él."
     };
+  },
+
+  // Cinematic Animated Ending Presentation Scripts (Multi-step narrative sequences)
+  getEndingCinematic: (endingId, state) => {
+    switch (endingId) {
+      case 'ending-1':
+        return {
+          id: 'ending-1',
+          title: 'DESENLACE 1: OBEDIENCIA Y PROTOCOLO ABSOLUTO',
+          badgeClass: 'warn',
+          location: 'PISO 40 // DIRECCIÓN CENTRAL DE VIGILANCIA DE ASTER',
+          badgeText: 'CONDECORACIÓN Y ASCENSO OFICIAL',
+          soundTheme: 'ending-1',
+          beats: [
+            {
+              speaker: "Narrador",
+              text: "La compuerta hidráulica de la esclusa cayó con un rugido ensordecedor ante la Dra. Inés Aranda. Dos unidades de contención armada la redujeron en cuestión de segundos, confiscando la unidad cifrada con la auditoría de LINA."
+            },
+            {
+              speaker: "José",
+              text: "Alberto... Acércate a este ventanal panorámico en el piso 40. Mira toda la extensión de Aster bajo las luces de neón y los dirigibles de vigilancia. Ni una sola grieta, ni un solo disturbio. El Consejo Supremo ha evaluado tu expediente del Puesto Norte."
+            },
+            {
+              speaker: "Alberto",
+              text: "Solo cumplí el procedimiento institucional, supervisor. LINA identificó las anomalías biométricas y yo ejecuté las órdenes sin dudar."
+            },
+            {
+              speaker: "José",
+              text: "Y precisamente por eso estás aquí arriba. Aster no necesita filósofos ni almas caritativas en la muralla: necesita operadores de hierro que no hagan preguntas. A partir de hoy, asumes la Supervisión Central de la Red de Vigilancia."
+            },
+            {
+              speaker: "Narrador",
+              text: "LINA ha sido integrada en cada esclusa, cámara urbana y terminal de la metrópoli. Bajo el mando de Alberto, la ciudad se ha convertido en una maquinaria perfecta y silenciosa... donde la compasión humana ha sido desterrada para siempre."
+            }
+          ]
+        };
+
+      case 'ending-2':
+        return {
+          id: 'ending-2',
+          title: 'DESENLACE 2: CUESTIONAMIENTO SIN CAMBIO (DUDA ESTÉRIL)',
+          badgeClass: 'warn',
+          location: 'NIVEL -4 // DEPÓSITO SUBTERRÁNEO DE ARCHIVOS OLVIDADOS',
+          badgeText: 'DEGRADACIÓN ADMINISTRATIVA',
+          soundTheme: 'ending-2',
+          beats: [
+            {
+              speaker: "Narrador",
+              text: "En el momento decisivo, la confusión y la falta de determinación dominaron el puesto de control. La documentación de Inés Aranda quedó atrapada en un laberinto burocrático y el Consejo selló el expediente bajo secreto de sumario."
+            },
+            {
+              speaker: "José",
+              text: "Tus métricas fueron inconsistentes, Alberto. Vacilaste ante los sospechosos, discutiste las alertas de LINA pero tampoco tuviste el valor de adoptar una postura clara. La tibieza en la frontera es un riesgo que el Consejo no tolera."
+            },
+            {
+              speaker: "Narrador",
+              text: "La orden de traslado llegó antes del amanecer. Lejos del pulso de la frontera, en las galerías subterráneas del Nivel -4, entre tuberías que gotean sin cesar y una única bombilla parpadeante."
+            },
+            {
+              speaker: "Alberto",
+              text: "Paso las horas clasificando carpetas amarillentas de personas cuyos nombres nadie recuerda. Cajas selladas que jamás volverán a ver la luz del sol."
+            },
+            {
+              speaker: "Narrador",
+              text: "Arriba, en la muralla, LINA continúa decidiendo el destino de miles de ciudadanos con sus sesgos intactos. Dudar de la injusticia en silencio, sin atreverse a actuar, jamás salvó a nadie del abismo."
+            }
+          ]
+        };
+
+      case 'ending-3':
+        return {
+          id: 'ending-3',
+          title: 'DESENLACE 3: RESISTENCIA Y RESPONSABILIDAD (LA GRIETA EN EL SISTEMA)',
+          badgeClass: 'good',
+          location: 'PUESTO DE ACCESO NORTE // AMANECER EN EL PERÍMETRO',
+          badgeText: 'FRACTURA HISTÓRICA',
+          soundTheme: 'ending-3',
+          beats: [
+            {
+              speaker: "Narrador",
+              text: "Mirando el monitor donde LINA proyectaba alertas rojas de 'OBJETIVO HOSTIL', Alberto sostuvo la mirada de Inés Aranda a través del cristal blindado... y con pulso sereno, pulsó el botón verde de ADMITIR."
+            },
+            {
+              speaker: "Inés Aranda",
+              text: "¡La compuerta se abre! Gracias, Alberto... La red clandestina ya está transmitiendo los archivos desclasificados. La farsa de LINA se ha terminado."
+            },
+            {
+              speaker: "José",
+              text: "¡Guardias, al suelo con él! ¡Traidor, desobedeciste una orden directa de Nivel 4! ¡Estás acabado, Alberto! ¡Vas a pudrirte en una celda militar!"
+            },
+            {
+              speaker: "Alberto",
+              text: "Puedes arrestarme, José. Pero el archivo ya está fuera de tus servidores. La responsabilidad de lo que ocurre en esta frontera no es de una máquina: es nuestra."
+            },
+            {
+              speaker: "Narrador",
+              text: "Mientras las esposas de acero se cierran sobre sus muñecas, una luz dorada de amanecer baña la esclusa por primera vez en años. La verdad sobre los falsos positivos resuena en cada rincón de Aster. La grieta en el muro ya nunca podrá cerrarse."
+            }
+          ]
+        };
+
+      case 'ending-4':
+        return {
+          id: 'ending-4',
+          title: 'DESENLACE 4: COMPLICIDAD CONSCIENTE (EL ENGRANAJE CÍNICO)',
+          badgeClass: 'bad',
+          location: 'SALA RESERVADA DE INCINERACIÓN // SECTOR INTERNO',
+          badgeText: 'PACTO DE COMPLICIDAD',
+          soundTheme: 'ending-4',
+          beats: [
+            {
+              speaker: "Narrador",
+              text: "Alberto conocía toda la verdad. Había leído el memorando secreto del 35% de error deliberado y el código del filtro óptico hostil. Sabía que Inés Aranda no era una criminal. Y aun así, eligió pulsar RECHAZAR."
+            },
+            {
+              speaker: "José",
+              text: "Cierra la puerta con cerrojo, Alberto. Nadie puede vernos aquí. Las brasas de este tambor incinerador están listas para devorar las últimas copias físicas de la auditoría."
+            },
+            {
+              speaker: "Alberto",
+              text: "Aquí están los expedientes del Proyecto LINA y las actas de exclusión barrial. Nada de esto figurará en los balances públicos."
+            },
+            {
+              speaker: "José",
+              text: "Sabías que el sistema mentía y decidiste proteger la estructura. Otros habrían tenido crisis de conciencia; tú entendiste las reglas del juego. A partir de hoy, formas parte del círculo de confianza de esta jefatura."
+            },
+            {
+              speaker: "Narrador",
+              text: "Mientras las cenizas incandescentes ascienden hacia el conducto de ventilación, Alberto contempla su reflejo en el metal. No hay engaño ni justificación posible: comprendió la maquinaria de opresión y decidió convertirse conscientemente en su engranaje."
+            }
+          ]
+        };
+
+      case 'ending-catastrophe':
+        return {
+          id: 'ending-catastrophe',
+          title: 'DESENLACE EXTRA: CATÁSTROFE PERIMETRAL (SABOTAJE ENERGÉTICO)',
+          badgeClass: 'bad',
+          location: 'SUBESTACIÓN ELÉCTRICA CENTRAL DE ASTER // EN LLAMAS',
+          badgeText: 'ATENTADO TERRORISTA CONSUMADO',
+          soundTheme: 'ending-catastrophe',
+          beats: [
+            {
+              speaker: "Narrador",
+              text: "A las pocas horas de que Karek Vance cruzara la esclusa norte con sus cilindros presurizados, una colosal explosión sacudió los cimientos de Aster. El cielo se tiñó de un resplandor naranja y negro de ceniza."
+            },
+            {
+              speaker: "LINA",
+              text: "ALERTA MÁXIMA DE CATÁSTROFE: Subestación Eléctrica 4 destruida por detonación de trinitrotolueno militar. Red perimetral de defensa colapsada. Múltiples víctimas. Apagón generalizado en la metrópoli."
+            },
+            {
+              speaker: "José",
+              text: "¡Maldita sea, Alberto! ¡Dejaste pasar al saboteador con explosivos camuflados de una compañía desmantelada hace tres meses! ¡Tenías todas las pruebas forenses en la pantalla!"
+            },
+            {
+              speaker: "Narrador",
+              text: "Mientras las sirenas de emergencia ululan en una ciudad sumida en la oscuridad y el fuego, un destacamento militar derriba la puerta de la cabina y encadena a Alberto. Su negligencia ha sentenciado el destino de miles de personas."
+            }
+          ]
+        };
+
+      case 'ending-rebellion':
+        return {
+          id: 'ending-rebellion',
+          title: 'DESENLACE EXTRA: GOLPE DE ESTADO (INSURRECCIÓN POPULAR ARMADA)',
+          badgeClass: 'warn',
+          location: 'PLAZA CENTRAL DEL CONSEJO SUPREMO // SEDE DE GOBIERNO TOMADA',
+          badgeText: 'CAÍDA DEL CONSEJO SUPREMO',
+          soundTheme: 'ending-rebellion',
+          beats: [
+            {
+              speaker: "Narrador",
+              text: "Al coordinar el ingreso de Renata Morales y el comandante táctico Dante Navarro con su convoy, las brigadas clandestinas convergieron sobre el centro neurálgico de Aster antes de la medianoche."
+            },
+            {
+              speaker: "Dante Navarro",
+              text: "¡Se acabó el silencio, inspectores del Consejo! Los centros de transmisión y la sede del gobierno están bajo control del Frente Libre. Ya nadie más será juzgado ni condenado por algoritmos inhumanos."
+            },
+            {
+              speaker: "José",
+              text: "Alberto... ¿qué has hecho? Les diste las llaves de la ciudad a los líderes de la insurrección armada. El Consejo ha caído y los militares han depuesto las armas."
+            },
+            {
+              speaker: "Narrador",
+              text: "Las banderas de la resistencia cívica ondean sobre las almenas del puesto norte. El régimen autoritario se desmorona en cuestión de horas. Alberto observa la marea de ciudadanos: el curso de la historia ha cambiado para siempre."
+            }
+          ]
+        };
+
+      case 'ending-fired':
+        return {
+          id: 'ending-fired',
+          title: 'DESENLACE EXTRA: DESTITUCIÓN FULMINANTE (NEGLIGENCIA BUROCRÁTICA)',
+          badgeClass: 'bad',
+          location: 'CABINA DE CONTROL // INTERVENCIÓN DE ASUNTOS INTERNOS',
+          badgeText: 'DESPIDO DISCIPLINARIO Y ARRESTO',
+          soundTheme: 'ending-fired',
+          beats: [
+            {
+              speaker: "Narrador",
+              text: "Una sirena estroboscópica roja inunda de pronto la cabina de inspección. La pantalla de la terminal se congela en seco proyectando en letras carmesí: 'INTERVENCIÓN ADMINISTRATIVA DE URGENCIA'."
+            },
+            {
+              speaker: "José",
+              text: "¡Basta, Alberto! Suelta esos mandos de inmediato. Llevo observando tu terminal desde la central: estás pulsando el mismo botón sistemáticamente sin leer expedientes, contrastar sellos ni prestar la menor atención."
+            },
+            {
+              speaker: "Comisario de Asuntos Internos",
+              text: "Inspector Alberto: queda revocado de forma fulminante de sus funciones de guardia perimetral por manifiesta incompetencia, indolencia reiterada y vulneración grave de las directivas de seguridad del Consejo."
+            },
+            {
+              speaker: "Narrador",
+              text: "Dos guardias armados le arrancan la insignia del pecho y bajan las persianas de acero blindado de la cabina. Alberto es escoltado a los calabozos administrativos: su carrera como inspector ha terminado antes de completar la jornada."
+            }
+          ]
+        };
+      default:
+        return null;
+    }
   }
 };
 
