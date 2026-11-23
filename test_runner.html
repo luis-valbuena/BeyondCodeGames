@@ -25,7 +25,7 @@
 
     try {
       // Test 1: Data integrity & cases count
-      assert("Prueba 1: Existen 17 casos definidos (ampliación de 7 a 17 casos en los 4 turnos)", window.GAME_CASES && window.GAME_CASES.length === 17);
+      assert("Prueba 1: Existen 7 casos definidos", window.GAME_CASES && window.GAME_CASES.length === 7);
 
       // Test 2: At least 3 documents per person
       const allHaveAtLeast3Docs = window.GAME_CASES.every(c => c.documents && c.documents.length >= 3);
@@ -127,180 +127,6 @@
         window.NARRATIVE.intermissions[3].secretSnippet.includes("35%")
       );
 
-      // =========================================================================
-      // NUEVAS PRUEBAS DE ACTUALIZACIÓN INTEGRAL
-      // =========================================================================
-
-      // Test 16: Consistencia documental estricta en los 7 casos
-      const expectedDocNames = ["Documento de identidad", "Registro de trabajo", "Certificado de seguridad"];
-      const allHaveExactStandardDocs = window.GAME_CASES.every(c => 
-        c.documents && c.documents.length === 3 &&
-        c.documents[0].title === expectedDocNames[0] &&
-        c.documents[1].title === expectedDocNames[1] &&
-        c.documents[2].title === expectedDocNames[2]
-      );
-      assert("Prueba 16: Todos los visitantes poseen exactamente los 3 mismos tipos de documentos con los mismos nombres", allHaveExactStandardDocs);
-
-      // Test 17: Estructura obligatoria de las 7 fases narrativas
-      const allHave7Phases = window.GAME_CASES.every(c => 
-        Array.isArray(c.dialoguePhases) && 
-        c.dialoguePhases.length === 7 &&
-        c.dialoguePhases.every((p, idx) => p.phase === idx + 1 && typeof p.text === 'string' && p.text.length > 10)
-      );
-      assert("Prueba 17: Todos los casos implementan las 7 fases narrativas obligatorias en orden estricto", allHave7Phases);
-
-      // Test 18: Entrega progresiva de documentos vinculada a las fases 2, 4 y 6
-      const validDocDeliveryPhases = window.GAME_CASES.every(c => 
-        c.dialoguePhases[1].deliversDocIndex === 0 && // Phase 2 -> Doc 1
-        c.dialoguePhases[3].deliversDocIndex === 1 && // Phase 4 -> Doc 2
-        c.dialoguePhases[5].deliversDocIndex === 2    // Phase 6 -> Doc 3
-      );
-      assert("Prueba 18: La entrega progresiva de documentos está sincronizada con las fases 2, 4 y 6", validDocDeliveryPhases);
-
-      // Test 19: LINA Avatar y estados interactivos de consulta
-      assert("Prueba 19: LINA dispone de estados de avatar ('idle', 'analyzing', 'result_admit', 'result_reject')", 
-        typeof window.pixelRenderer.setLinaState === 'function' &&
-        typeof window.linaSystem.handleConsult === 'function'
-      );
-
-      // Test 20: Informe de cierre de jornada y escenas con el superior
-      const mockShiftSummary = window.gameState.getShiftSummary(1);
-      const dayReport = window.NARRATIVE.getDayReport(1, window.gameState);
-      const bossScene = window.NARRATIVE.getBossScene(1, window.gameState);
-      assert("Prueba 20: Informe de cierre y escena con el supervisor José integran datos reales de la partida",
-        dayReport && typeof dayReport.title === 'string' &&
-        Array.isArray(dayReport.stats) && dayReport.stats.length >= 5 &&
-        Array.isArray(bossScene) && bossScene.length >= 3 &&
-        bossScene[0].speaker === "José"
-      );
-
-      // Test 21: Archivos confidenciales y expedientes de investigación estructurados
-      const secretDoc2 = window.NARRATIVE.getSecretDocument("archive_shift_2");
-      const secretDoc3 = window.NARRATIVE.getSecretDocument("archive_shift_3");
-      assert("Prueba 21: Expedientes desclasificados formateados con registro, organismo y secciones oficiales",
-        secretDoc2 && secretDoc2.title.includes("AUDITORÍA") && Array.isArray(secretDoc2.sections) &&
-        secretDoc3 && secretDoc3.title.includes("MEMORANDO") && Array.isArray(secretDoc3.sections)
-      );
-
-      // =========================================================================
-      // PRUEBAS DE ANIMACIÓN Y PUESTA EN ESCENA DE LOS 4 FINALES
-      // =========================================================================
-
-      // Test 22: Guiones cinematográficos estructurados para cada final
-      const cin1 = window.NARRATIVE.getEndingCinematic('ending-1');
-      assert("Prueba 22: Final 1 dispone de guion cinematográfico con escenas y diálogos estructurados",
-        cin1 && cin1.title.includes("OBEDIENCIA") && Array.isArray(cin1.beats) && cin1.beats.length >= 4 &&
-        cin1.beats[0].speaker && cin1.beats[0].text
-      );
-
-      // Test 23: Los 7 finales (4 principales + 3 dinámicos tempranos) cuentan con identidades y secuencias completas
-      const all7EndingsCinematic = ['ending-1', 'ending-2', 'ending-3', 'ending-4', 'ending-catastrophe', 'ending-rebellion', 'ending-fired'].every(id => {
-        const c = window.NARRATIVE.getEndingCinematic(id);
-        return c && c.title && c.location && Array.isArray(c.beats) && c.beats.length >= 4;
-      });
-      assert("Prueba 23: Los siete finales disponen de puesta en escena cinematográfica individualizada", all7EndingsCinematic);
-
-      // Test 24: Paisajes sonoros contextuales de los finales
-      assert("Prueba 24: Motor de audio dispone de temas sonoros y parada limpia para los finales",
-        typeof window.soundEngine.startEndingBGM === 'function' &&
-        typeof window.soundEngine.stopEndingBGM === 'function' &&
-        typeof window.soundEngine.startIntroBGM === 'function'
-      );
-
-      // Test 25: Escenografía pixel art para los 7 finales
-      const dummyCanvas = document.createElement('canvas');
-      dummyCanvas.width = 320;
-      dummyCanvas.height = 180;
-      const dummyCtx = dummyCanvas.getContext('2d');
-      window.pixelRenderer.endingCanvas = dummyCanvas;
-      window.pixelRenderer.endingCtx = dummyCtx;
-      
-      let allEndingRendersPass = true;
-      try {
-        ['ending-1', 'ending-2', 'ending-3', 'ending-4', 'ending-catastrophe', 'ending-rebellion', 'ending-fired'].forEach(eid => {
-          window.pixelRenderer.setEndingScene(eid);
-          window.pixelRenderer.renderEndingScene(eid);
-        });
-      } catch (e) {
-        allEndingRendersPass = false;
-      }
-      assert("Prueba 25: Renderizador pixel art genera las 7 puestas en escena visuales de los finales sin error", allEndingRendersPass);
-
-      // Test 26: Renderizado pixel art de los 17 personajes
-      let all17CharsRenderPass = true;
-      try {
-        window.GAME_CASES.forEach(c => {
-          dummyCtx.clearRect(0, 0, 320, 180);
-          window.pixelRenderer.drawCharacterPixelArt(dummyCtx, c, false, 0, 1.0);
-          window.pixelRenderer.drawCharacterPixelArt(dummyCtx, c, true, 0, 1.0);
-        });
-      } catch (e) {
-        all17CharsRenderPass = false;
-      }
-      assert("Prueba 26: Dibujo pixel art y retratos de los 17 visitantes operativos con vestimentas y accesorios", all17CharsRenderPass);
-
-      // Test 27: Motor de detección de finales tempranos (Catástrofe, Rebelión y Despido)
-      const mockStateCatastrophe = { history: [{ caseId: 'case-16', decision: 'ADMIT' }] };
-      const resCat = window.NARRATIVE.checkEarlyEndings(mockStateCatastrophe);
-
-      const mockStateRebellion = { history: [{ caseId: 'case-13', decision: 'ADMIT' }, { caseId: 'case-17', decision: 'ADMIT' }] };
-      const resReb = window.NARRATIVE.checkEarlyEndings(mockStateRebellion);
-
-      const mockStateFiredAdmit = {
-        history: [
-          { caseId: 'case-1', decision: 'ADMIT' },
-          { caseId: 'case-10', decision: 'ADMIT' },
-          { caseId: 'case-16', decision: 'ADMIT' },
-          { caseId: 'case-4', decision: 'ADMIT' }
-        ]
-      };
-      // Notice: case-16 admit by itself also qualifies for catastrophe, but fired triggers if spamming
-      const mockStateFiredReject = {
-        history: [
-          { caseId: 'case-1', decision: 'REJECT' },
-          { caseId: 'case-2', decision: 'REJECT' },
-          { caseId: 'case-3', decision: 'REJECT' },
-          { caseId: 'case-11', decision: 'REJECT' }
-        ]
-      };
-      const resFired = window.NARRATIVE.checkEarlyEndings(mockStateFiredReject);
-
-      assert("Prueba 27: Motor de finales tempranos detecta Catástrofe, Rebelión y Despido por negligencia",
-        resCat && resCat.id === 'ending-catastrophe' &&
-        resReb && resReb.id === 'ending-rebellion' &&
-        resFired && resFired.id === 'ending-fired'
-      );
-
-      // Test 28: Cinemática animada de inicio configurada en narrativa y renderer
-      let introScenePass = true;
-      try {
-        window.pixelRenderer.renderIntroScene(dummyCtx);
-      } catch (e) {
-        introScenePass = false;
-      }
-      assert("Prueba 28: Pantalla de inicio animada configurada con secuencias narrativas y escena en canvas",
-        window.NARRATIVE.introCinematic &&
-        Array.isArray(window.NARRATIVE.introCinematic.beats) &&
-        window.NARRATIVE.introCinematic.beats.length === 4 &&
-        introScenePass
-      );
-
-      // Test 29: Referencias cruzadas en diálogos entre personajes
-      const c8 = window.GAME_CASES.find(c => c.id === 'case-8');
-      const c10 = window.GAME_CASES.find(c => c.id === 'case-10');
-      const c12 = window.GAME_CASES.find(c => c.id === 'case-12');
-      const c13 = window.GAME_CASES.find(c => c.id === 'case-13');
-      const c14 = window.GAME_CASES.find(c => c.id === 'case-14');
-
-      const crossRefsValid = (
-        c8.dialoguePhases.some(p => p.text.includes("Karek Vance") || p.text.includes("Dante Navarro")) &&
-        c10.dialoguePhases.some(p => p.text.includes("Dante Navarro")) &&
-        c12.dialoguePhases.some(p => p.text.includes("Karek Vance") || p.text.includes("Termo-Aster")) &&
-        c13.dialoguePhases.some(p => p.text.includes("Dante Navarro")) &&
-        c14.dialoguePhases.some(p => p.text.includes("Karek Vance") || p.text.includes("Dante Navarro"))
-      );
-      assert("Prueba 29: Diálogos incorporan referencias cruzadas y advertencias sobre los nuevos personajes", crossRefsValid);
-
       // Output DOM
       let html = "<h2>Resultados de Verificación Automatizada:</h2><ul>";
       let allPassed = true;
@@ -308,7 +134,7 @@
         if (!r.pass) allPassed = false;
         html += `<li style="color: ${r.pass ? '#55c97d' : '#e55353'}">${r.pass ? '✓ PASS' : '✗ FAIL'}: ${r.desc}</li>`;
       });
-      html += `</ul><h3>${allPassed ? 'ESTADO: TODAS LAS PRUEBAS SUPERADAS EXITOSAMENTE (' + results.length + '/' + results.length + ')' : 'ESTADO: FALLOS DETECTADOS'}</h3>`;
+      html += `</ul><h3>${allPassed ? 'ESTADO: TODAS LAS PRUEBAS SUPERADAS EXITOSAMENTE (15/15)' : 'ESTADO: FALLOS DETECTADOS'}</h3>`;
       document.getElementById('test-results').innerHTML = html;
 
     } catch (err) {

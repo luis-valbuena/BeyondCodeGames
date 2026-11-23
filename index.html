@@ -11,8 +11,10 @@
 
   <!-- Main Game 16:9 Viewport Container -->
   <div id="game-wrapper">
-    <!-- CRT Filter Overlay -->
+    <!-- Physical CRT Monitor Glass Bezel & Scanlines Filter -->
     <div class="crt-overlay"></div>
+    <div class="crt-flicker"></div>
+    <div class="crt-vignette"></div>
 
     <!-- Notification Toast -->
     <div id="game-toast">Notificación del sistema</div>
@@ -20,11 +22,16 @@
     <!-- Persistent Top Status Bar (Visible in Gameplay) -->
     <header id="top-bar">
       <div class="top-bar-left">
+        <div class="terminal-brand-badge">
+          <span class="brand-led"></span>
+          <span class="brand-text">ASTER TERMINAL v3.4</span>
+        </div>
         <span class="badge-tag highlight" id="status-shift-num">TURNO 1 / 4</span>
         <span class="badge-tag" id="status-case-progress">CASO 1 DE 7</span>
       </div>
       <div class="top-bar-center">
         <span class="badge-tag alert">CIUDAD DE ASTER // PUESTO DE ACCESO NORTE</span>
+        <span class="system-time" id="system-clock">21:42:00</span>
       </div>
       <div class="top-bar-right">
         <button class="icon-btn btn-toggle-sound" title="Alternar audio (M)">🔊 SONIDO: ON [M]</button>
@@ -35,12 +42,23 @@
          SCREEN 1: TITLE SCREEN
          ==================================================================== -->
     <section id="title-screen" class="screen active">
+      <!-- Title Screen Artwork Backdrop -->
+      <div class="title-backdrop-art"></div>
       <canvas id="title-canvas"></canvas>
+
+      <div class="title-scanlines"></div>
 
       <div class="title-content">
         <div class="title-header">
-          <div class="studio-name">BEYOND CODE GAMES PRESENTA</div>
+          <div class="studio-name">
+            <span class="studio-pip"></span>
+            BEYOND CODE GAMES PRESENTA
+            <span class="studio-pip"></span>
+          </div>
           <h1>UNDER SURVEILLANCE</h1>
+          <div class="title-classification-tag">
+            DIRECTIVA SUPREMA DEL CONSEJO // PUESTO DE CONTROL FRONTERIZO
+          </div>
           <p class="title-subtitle">
             Un simulador narrativo sobre la confianza ciega en algoritmos predictivos, el peso de la obediencia y la ilusión de la objetividad tecnológica.
           </p>
@@ -48,14 +66,31 @@
       </div>
 
       <div class="title-menu">
-        <button id="btn-new-game" class="btn-pixel">INICIAR TURNO</button>
-        <button id="btn-continue-game" class="btn-pixel" style="display: none; border-color: var(--col-violet);">CONTINUAR PARTIDA</button>
-        <button id="btn-how-to-play" class="btn-pixel" style="background: transparent; border-color: var(--col-dark-blue-light);">CÓMO JUGAR</button>
-        <button class="icon-btn btn-toggle-sound" style="margin-top: 6px;">🔊 SONIDO: ON [M]</button>
+        <button id="btn-new-game" class="btn-pixel btn-main-menu">
+          <span class="btn-bracket">[</span> INICIAR TURNO <span class="btn-bracket">]</span>
+        </button>
+        <button id="btn-continue-game" class="btn-pixel btn-main-menu btn-continue" style="display: none;">
+          <span class="btn-bracket">[</span> CONTINUAR PARTIDA <span class="btn-bracket">]</span>
+        </button>
+        <button id="btn-how-to-play" class="btn-pixel btn-main-menu btn-secondary">
+          <span class="btn-bracket">[</span> MANUAL DEL PUESTO <span class="btn-bracket">]</span>
+        </button>
+        <button class="icon-btn btn-toggle-sound title-sound-btn">
+          🔊 SONIDO: ON [M]
+        </button>
       </div>
 
       <div class="title-footer">
-        <span>ASTER SECURITY OS v3.4 // DIRECTIVA DE CONTROL PERIMETRAL</span>
+        <div class="footer-telemetry">
+          <span>SISTEMA OPERATIVO ASTER OS v3.4.9</span>
+          <span class="footer-divider">•</span>
+          <span>NÚCLEO PREDICTIVO LINA: SINCRONIZADO</span>
+          <span class="footer-divider">•</span>
+          <span>TERMINAL CLASE A-09</span>
+        </div>
+        <div class="footer-warning">
+          AVISO LEGAL: Todas las decisiones registradas en este puesto son vinculantes, definitivas e irreversibles.
+        </div>
       </div>
     </section>
 
@@ -63,42 +98,49 @@
          SCREEN 2: NARRATIVE INTRO / BRIEFING
          ==================================================================== -->
     <section id="intro-screen" class="screen">
-      <div class="intro-cinematic-wrapper">
-        <div class="intro-cinematic-header">
-          <div class="intro-location-tag">
-            <span class="rec-dot" style="margin-right: 6px;"></span>
-            <span id="intro-cinematic-location">PUESTO DE CONTROL FRONTERIZO NORTE // 05:45 AM</span>
+      <div class="briefing-container">
+        
+        <!-- Video Feed of Supervisor José -->
+        <div class="comm-feed-panel">
+          <div class="comm-header">
+            <span class="comm-status-dot"></span>
+            <span class="comm-label">ENLACE DE COMANDO // ENCRIPTADO</span>
           </div>
-          <div class="intro-beat-counter" id="intro-beat-counter">SECUENCIA 1 / 4</div>
-        </div>
-
-        <div class="intro-scene-viewport">
-          <canvas id="intro-canvas"></canvas>
-          <div class="intro-scene-overlay">
-            <span class="badge-tag highlight">ARRIBO DE GUARDIA</span>
+          <div class="comm-portrait-box">
+            <img src="assets/ui/supervisor_jose.jpg" alt="Supervisor José Serrano" class="comm-portrait-img" id="intro-portrait-img">
+            <div class="comm-crt-lines"></div>
+            <div class="comm-audio-wave">
+              <span class="wave-bar"></span>
+              <span class="wave-bar"></span>
+              <span class="wave-bar"></span>
+              <span class="wave-bar"></span>
+              <span class="wave-bar"></span>
+              <span class="wave-bar"></span>
+            </div>
           </div>
-        </div>
-
-        <div class="intro-dialogue-console">
-          <div class="intro-dialogue-header">
-            <span class="intro-speaker-badge" id="intro-speaker-name">Narrador</span>
-            <span class="intro-audio-indicator" style="font-size: 11px; color: var(--col-muted-green);">CANAL SEGURO DE COMUNICACIÓN</span>
-          </div>
-          <div class="intro-dialogue-body">
-            <p id="intro-dialogue-text" class="intro-dialogue-text"></p>
-          </div>
-          <div class="intro-dialogue-actions">
-            <button id="btn-intro-advance" class="btn-pixel btn-intro-advance">CONTINUAR [ESPACIO] ▶</button>
-            <button id="btn-start-intro" class="btn-pixel btn-start-intro" style="display: none; border-color: var(--col-muted-green); background: #162a20;">INGRESAR A LA CABINA DE CONTROL ▶</button>
+          <div class="comm-meta">
+            <span class="comm-name">JOSÉ SERRANO</span>
+            <span class="comm-role">Jefatura de Guardia • Puesto Norte</span>
           </div>
         </div>
 
-        <!-- Elementos de compatibilidad retroactiva con suites de prueba automatizadas -->
-        <div style="display: none;">
-          <h2 id="intro-title"></h2>
-          <span id="intro-speaker"></span>
-          <div id="intro-body"></div>
+        <!-- Briefing Document Box -->
+        <div class="briefing-box">
+          <div class="briefing-header">
+            <div>
+              <div class="briefing-kicker">COMUNICACIÓN OFICIAL DE SUPERVISIÓN</div>
+              <h2 id="intro-title">PROTOCOLO DE ENTRADA</h2>
+            </div>
+            <span class="briefing-speaker" id="intro-speaker">SUPERVISIÓN // JOSÉ</span>
+          </div>
+          <div class="briefing-body" id="intro-body">
+            <!-- Populated dynamically via narrative.js -->
+          </div>
+          <div class="briefing-actions">
+            <button id="btn-start-intro" class="btn-pixel btn-action">INGRESAR A LA CABINA</button>
+          </div>
         </div>
+
       </div>
     </section>
 
@@ -108,297 +150,352 @@
     <section id="gameplay-screen" class="screen">
       <main id="booth-workspace">
         
-        <!-- LEFT PANEL: Person CCTV Viewport & Spacious Dialogue Console -->
+        <!-- LEFT PANEL: Person CCTV Viewport & Biometrics -->
         <div class="panel-left">
           <div class="camera-header">
-            <span>OPTICAL CAM-01 [PUERTA]</span>
+            <div class="cam-info">
+              <span class="cam-dot"></span>
+              <span>OPTICAL CAM-01 [PUERTA NORTE]</span>
+            </div>
             <div class="cam-rec">
-              <span class="rec-dot"></span> REC
+              <span class="rec-dot"></span> REC 30FPS
             </div>
           </div>
 
-          <div class="person-viewport">
+          <div class="person-viewport" title="Clic para examinar documentación del solicitante">
+            <!-- Canvas viewport drawing character and environment -->
             <canvas id="person-canvas"></canvas>
+            
+            <!-- Lens and Scanline Overlays -->
+            <div class="cctv-scanlines"></div>
+            <div class="cctv-lens-distortion"></div>
             
             <!-- Perception Alteration Layers -->
             <div id="perception-overlay" class="perception-overlay"></div>
+            
             <div id="threat-reticle" class="threat-reticle">
-              <span class="reticle-label">LINA: ANOMALÍA BIOMÉTRICA</span>
-              <span class="reticle-label" style="align-self: flex-end; color: var(--col-violet);">PERFIL HOSTIL</span>
+              <div class="reticle-top">
+                <span class="reticle-label">LINA: ANOMALÍA BIOMÉTRICA</span>
+                <span class="reticle-telemetry">ERR: +87.4%</span>
+              </div>
+              <div class="reticle-center-brackets"></div>
+              <div class="reticle-bottom">
+                <span class="reticle-label" style="color: var(--col-violet);">PERFIL HOSTIL PROYECTADO</span>
+                <span class="reticle-tag">P-72 ACTIVO</span>
+              </div>
             </div>
+
+            <!-- CCTV HUD Viewport Marks -->
+            <div class="cctv-crosshair"></div>
+            <div class="cctv-corner tl"></div>
+            <div class="cctv-corner tr"></div>
+            <div class="cctv-corner bl"></div>
+            <div class="cctv-corner br"></div>
+            <div class="cctv-timestamp-hud" id="cctv-hud-timestamp">CAM-01 • ESCLUSA NORTE</div>
           </div>
 
-          <!-- SP SPACIOUS VISITOR CONVERSATION CONSOLE -->
-          <div class="visitor-dialogue-console" id="visitor-dialogue-console">
-            <div class="dialogue-header">
-              <div class="dialogue-portrait-wrap">
-                <canvas id="dialogue-portrait-canvas" width="72" height="72"></canvas>
+          <div class="person-bio-card" title="Declaración personal del solicitante">
+            <div class="bio-header-line">
+              <div class="bio-identity">
+                <div class="bio-name" id="bio-name">Nombre de Persona</div>
+                <div class="bio-sub" id="bio-age-origin">30 años | Origen</div>
               </div>
-              <div class="dialogue-meta">
-                <div class="dialogue-speaker-name" id="dialogue-speaker-name">Nombre de Persona</div>
-                <div class="dialogue-speaker-sub" id="dialogue-speaker-sub">Edad | Ocupación | Origen</div>
-                <div class="dialogue-phase-tag" id="dialogue-phase-tag">FASE 1/7: PRESENTACIÓN</div>
-              </div>
+              <span class="bio-id-status">ID REGISTRADO</span>
             </div>
-
-            <div class="dialogue-body">
-              <div class="dialogue-text-content" id="dialogue-text-content">
-                <!-- Typewriter text inserted here -->
-              </div>
-            </div>
-
-            <div class="dialogue-actions-bar">
-              <button id="btn-dialogue-advance" class="btn-dialogue-advance" title="Avanzar intervención (Espacio)">
-                CONTINUAR ▶
-              </button>
-            </div>
+            <div class="bio-statement" id="bio-statement">"Declaración personal..."</div>
           </div>
         </div>
 
-        <!-- CENTER PANEL: Physical Desk & Progressive Documents Tray -->
+        <!-- CENTER PANEL: Physical Desk & Documents Tray -->
         <div class="panel-center">
           <div class="center-title">
-            <span>EXPEDIENTES Y DOCUMENTOS</span>
-            <span style="font-size: 10px; color: #a4b3cf;">[TECLAS 1-3]</span>
+            <div class="desk-title-group">
+              <span class="desk-icon">📁</span>
+              <span>EXPEDIENTES Y EVIDENCIAS</span>
+            </div>
+            <div class="desk-shortcut-tag">
+              <span>ACCESO RÁPIDO [TECLAS 1-4]</span>
+            </div>
           </div>
 
-          <div class="docs-tray-info" id="docs-tray-info">
-            <span id="docs-count-label">DOCUMENTOS ENTREGADOS: 0 / 3</span>
-            <span id="docs-phase-status" class="status-waiting">EN FASE DE PRESENTACIÓN</span>
+          <div class="desk-subbar">
+            <span class="desk-sub-label">BANDEJA DE INSPECCIÓN DOCUMENTAL</span>
+            <span class="desk-inspection-status" id="doc-inspection-summary">REVISE CADA EXPEDIENTE DETENIDAMENTE</span>
           </div>
 
           <div class="docs-tray" id="docs-tray">
-            <!-- Standardized Document Cards delivered progressively:
-                 1. Documento de identidad (Phase 2)
-                 2. Registro de trabajo (Phase 4)
-                 3. Certificado de seguridad (Phase 6) -->
+            <!-- Document cards populated dynamically -->
           </div>
 
-          <div class="desk-inspection-instructions" id="desk-inspection-instructions">
-            <strong>PROCEDIMIENTO DE INSPECCIÓN OBLIGATORIO:</strong>
-            <p>1. Escuche la declaración completa del visitante a lo largo de las 7 fases.</p>
-            <p>2. Reciba cada uno de los 3 documentos oficiales entregados en su mesa.</p>
-            <p>3. En la Fase 7, examine cada expediente en detalle y consulte el dictamen biométrico de LINA.</p>
-            <p>4. Emita su resolución final e irreversible mediante [ADMITIR] o [RECHAZAR].</p>
+          <div class="desk-mat-footer">
+            <div class="desk-rule-indicator">
+              <span>SELLO PERIMETRAL: REPUBLICA DE ASTER</span>
+              <span class="desk-rule-divider">|</span>
+              <span>VERIFICAR SELLOS, VIGENCIA Y EXPEDIENTE</span>
+            </div>
           </div>
         </div>
 
-        <!-- RIGHT PANEL: LINA AI Terminal with Animated Interactive Avatar -->
+        <!-- RIGHT PANEL: LINA AI Terminal -->
         <div class="panel-right">
           <div class="terminal-header">
-            <span class="lina-brand">TERMINAL LINA v3.4</span>
+            <div class="lina-brand-group">
+              <span class="lina-pulse-dot"></span>
+              <span class="lina-brand">TERMINAL LINA v3.4</span>
+            </div>
             <span class="lina-status">● CONECTADO</span>
           </div>
 
-          <!-- Interactive Central LINA Avatar -->
-          <div class="lina-avatar-container" id="lina-avatar-container" title="Haga clic sobre el avatar de LINA para iniciar análisis biométrico">
-            <canvas id="lina-avatar-canvas" width="160" height="120"></canvas>
-            <div id="lina-avatar-badge" class="lina-avatar-badge available">
-              ⚡ ANÁLISIS DISPONIBLE [CLIC AQUÍ O PULSA L]
+          <!-- LINA AI Avatar Display Section -->
+          <div class="lina-avatar-box">
+            <div class="lina-avatar-frame">
+              <img src="assets/lina/lina_idle.jpg" alt="LINA Artificial Intelligence" class="lina-avatar-img" id="lina-avatar-img">
+              <div class="lina-avatar-scan"></div>
+              <div class="lina-avatar-glitch" id="lina-avatar-glitch"></div>
+            </div>
+            <div class="lina-avatar-telemetry">
+              <div class="lina-core-state" id="lina-core-state">NÚCLEO BIOMÉTRICO: ACTIVO</div>
+              <div class="lina-neural-sub" id="lina-neural-sub">RED PREDICTIVA ASTER // v3.4</div>
             </div>
           </div>
 
           <div class="lina-terminal-screen" id="lina-terminal-screen">
             <!-- Telemetry Scanning Bar -->
             <div class="scan-progress-box" id="scan-progress-box">
-              <div class="telemetry-text" id="telemetry-text">Iniciando escaneo...</div>
+              <div class="telemetry-header">
+                <span class="telemetry-icon">⚡</span>
+                <span class="telemetry-text" id="telemetry-text">Iniciando escaneo...</span>
+              </div>
               <div class="scan-progress-bar">
                 <div class="scan-progress-fill" id="scan-progress-fill"></div>
               </div>
+              <div class="telemetry-subdata">PROCESANDO MATRIZ BIOMÉTRICA MULTIFACTORIAL...</div>
             </div>
 
             <!-- Analysis Output -->
             <div class="lina-result-box" id="lina-result-box">
-              <div style="color: #6a7c99; font-style: italic; padding: 8px; text-align: center; font-size: 11px;">
-                [LINA v3.4 EN ESPERA]<br>
-                Haga clic sobre el avatar superior o pulse [L] para procesar datos biométricos y antecedentes.
+              <div class="lina-placeholder">
+                <div class="lina-placeholder-icon">👁️</div>
+                <div class="lina-placeholder-title">[LINA v3.4 EN ESPERA]</div>
+                <div class="lina-placeholder-desc">
+                  Haga clic en 'CONSULTAR A LINA' para procesar datos biométricos, antecedentes y lealtad predictiva.
+                </div>
               </div>
             </div>
           </div>
 
-          <button id="btn-consult-lina" class="btn-lina">CONSULTAR A LINA [L]</button>
+          <button id="btn-consult-lina" class="btn-lina">
+            <span class="btn-lina-glow"></span>
+            CONSULTAR A LINA [L]
+          </button>
         </div>
 
       </main>
 
       <!-- BOTTOM DOCK: Irreversible Decisions -->
       <footer id="bottom-dock">
-        <div class="dock-status-msg" id="dock-status-msg">
-          <span>⚠️ ADVERTENCIA: Debe completar las 7 fases de la presentación antes de emitir una decisión.</span>
+        <div class="dock-status-msg">
+          <span class="dock-warn-badge">⚠️ ACTA DEFINITIVA</span>
+          <span>Toda decisión queda registrada en el libro oficial de guardia y es <strong style="color: var(--col-orange);">IRREVERSIBLE</strong>.</span>
         </div>
         <div class="decision-buttons">
-          <button id="btn-decision-admit" class="btn-decision btn-admit" disabled>ADMITIR [A]</button>
-          <button id="btn-decision-reject" class="btn-decision btn-reject" disabled>RECHAZAR [R]</button>
+          <button id="btn-decision-admit" class="btn-decision btn-admit">
+            <span class="btn-icon">✔</span> ADMITIR [A]
+          </button>
+          <button id="btn-decision-reject" class="btn-decision btn-reject">
+            <span class="btn-icon">✖</span> RECHAZAR [R]
+          </button>
         </div>
       </footer>
     </section>
 
     <!-- ====================================================================
-         SCREEN 4: DAY AUDIT SUMMARY SCREEN (INFORME DE CIERRE DEL DÍA)
-         ==================================================================== -->
-    <section id="day-summary-screen" class="screen">
-      <div class="day-summary-box">
-        <div class="day-summary-header">
-          <div>
-            <h2 id="day-summary-title">INFORME INSTITUCIONAL DE CIERRE // JORNADA 1</h2>
-            <span class="day-summary-ref" id="day-summary-ref">EXP-CIERRE-AST-2026 // ESTRICTAMENTE CONFIDENCIAL</span>
-          </div>
-          <div class="day-summary-badge" id="day-summary-organism">
-            CONSEJO SUPREMO DE SEGURIDAD
-          </div>
-        </div>
-
-        <div class="day-summary-grid" id="day-summary-stats-grid">
-          <!-- Dynamically populated statistics from gameState -->
-        </div>
-
-        <div class="day-summary-incidents-box">
-          <div class="incidents-title">REGISTRO DE INCIDENCIAS Y NOVEDADES EN LA ESCLUSA:</div>
-          <ul id="day-summary-incidents-list" class="incidents-list">
-            <!-- Incidents populated dynamically -->
-          </ul>
-        </div>
-
-        <div class="day-summary-footer">
-          <div class="doc-stamp" id="day-summary-stamp">JORNADA AUDITADA</div>
-          <button id="btn-proceed-to-boss" class="btn-pixel">IR AL DESPACHO DE SUPERVISIÓN ▶</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- ====================================================================
-         SCREEN 5: BOSS CONVERSATION SCENE (DESPACHO DE JOSÉ)
-         ==================================================================== -->
-    <section id="boss-scene-screen" class="screen">
-      <div class="boss-scene-wrapper">
-        <div class="boss-office-viewport">
-          <canvas id="boss-canvas"></canvas>
-          <div class="boss-office-overlay">
-            <span class="badge-tag highlight">DESPACHO DE SUPERVISIÓN // PISO 24</span>
-            <span class="badge-tag alert" id="boss-shift-indicator">FIN DEL TURNO 1</span>
-          </div>
-        </div>
-
-        <div class="boss-dialogue-console">
-          <div class="boss-dialogue-header">
-            <span class="briefing-speaker" id="boss-speaker-name">SUPERVISOR JOSÉ SERRANO</span>
-            <span class="boss-dialogue-step" id="boss-dialogue-step">INTERVENCIÓN 1 / 4</span>
-          </div>
-
-          <div class="boss-dialogue-body" id="boss-dialogue-text">
-            <!-- Typewriter boss dialogue -->
-          </div>
-
-          <div class="boss-dialogue-actions">
-            <button id="btn-boss-view-secret" class="btn-pixel" style="display: none; border-color: var(--col-violet); color: #d1c4e9;">
-              📂 EXPEDIENTE INTERCEPTADO
-            </button>
-            <button id="btn-boss-advance" class="btn-dialogue-advance">
-              CONTINUAR [ESPACIO] ▶
-            </button>
-            <button id="btn-boss-next-shift" class="btn-pixel" style="display: none;">
-              INICIAR SIGUIENTE TURNO ▶
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ====================================================================
-         SCREEN 6: INTERMISSION (Legacy Compatibility Fallback)
+         SCREEN 4: INTERMISSION (Between shifts & discoveries)
          ==================================================================== -->
     <section id="intermission-screen" class="screen">
-      <div class="briefing-box">
-        <div class="briefing-header">
-          <h2 id="intermission-title">FIN DE TURNO</h2>
-          <span class="briefing-speaker" id="intermission-speaker">SUPERVISIÓN // REVISIÓN</span>
+      <div class="briefing-container">
+        
+        <!-- Video Feed of Supervisor José in Intermission -->
+        <div class="comm-feed-panel">
+          <div class="comm-header">
+            <span class="comm-status-dot"></span>
+            <span class="comm-label">DESPACHO DE SUPERVISIÓN</span>
+          </div>
+          <div class="comm-portrait-box">
+            <img src="assets/ui/supervisor_jose.jpg" alt="Supervisor José Serrano" class="comm-portrait-img">
+            <div class="comm-crt-lines"></div>
+            <div class="comm-audio-wave">
+              <span class="wave-bar"></span>
+              <span class="wave-bar"></span>
+              <span class="wave-bar"></span>
+              <span class="wave-bar"></span>
+              <span class="wave-bar"></span>
+              <span class="wave-bar"></span>
+            </div>
+          </div>
+          <div class="comm-meta">
+            <span class="comm-name">JOSÉ SERRANO</span>
+            <span class="comm-role">Evaluación de Turno • Supervisión General</span>
+          </div>
         </div>
-        <div class="briefing-body" id="intermission-body">
-          <!-- Populated dynamically -->
+
+        <!-- Intermission Summary Box -->
+        <div class="briefing-box">
+          <div class="briefing-header">
+            <div>
+              <div class="briefing-kicker">INFORME DE BALANCE DE SEGURIDAD</div>
+              <h2 id="intermission-title">FIN DE TURNO</h2>
+            </div>
+            <span class="briefing-speaker" id="intermission-speaker">SUPERVISIÓN // REVISIÓN</span>
+          </div>
+          <div class="briefing-body" id="intermission-body">
+            <!-- Populated dynamically -->
+          </div>
+          <div class="briefing-actions">
+            <button id="btn-view-secret" class="btn-pixel btn-secret" style="display: none;">
+              📂 ARCHIVO INTERCEPTADO
+            </button>
+            <button id="btn-advance-shift" class="btn-pixel btn-action">
+              SIGUIENTE TURNO
+            </button>
+          </div>
         </div>
-        <div class="briefing-actions">
-          <button id="btn-view-secret" class="btn-pixel" style="display: none; border-color: var(--col-violet); color: #d1c4e9;">📂 ARCHIVO INTERCEPTADO</button>
-          <button id="btn-advance-shift" class="btn-pixel">SIGUIENTE TURNO</button>
-        </div>
+
       </div>
     </section>
 
     <!-- ====================================================================
-         SCREEN 7A: ENDING CINEMATIC SCENE (PUESTA EN ESCENA CINEMATOGRÁFICA)
-         ==================================================================== -->
-    <section id="ending-cinematic-screen" class="screen">
-      <div class="ending-cinematic-wrapper">
-        <div class="ending-scene-viewport">
-          <canvas id="ending-canvas"></canvas>
-          <div class="ending-scene-overlay">
-            <span class="badge-tag highlight" id="ending-cinematic-badge">DESENLACE</span>
-            <span class="badge-tag alert" id="ending-cinematic-location">ASTER // PROTOCOLO FINAL</span>
-          </div>
-        </div>
-
-        <div class="ending-dialogue-console">
-          <div class="ending-dialogue-header">
-            <span class="briefing-speaker" id="ending-speaker-name">NARRADOR</span>
-            <span class="ending-dialogue-step" id="ending-dialogue-step">ESCENA 1 / 5</span>
-          </div>
-
-          <div class="ending-dialogue-body" id="ending-dialogue-text">
-            <!-- Typewriter ending dialogue -->
-          </div>
-
-          <div class="ending-dialogue-actions">
-            <button id="btn-ending-advance" class="btn-dialogue-advance">
-              CONTINUAR [ESPACIO] ▶
-            </button>
-            <button id="btn-ending-to-audit" class="btn-pixel" style="display: none;">
-              VER AUDITORÍA FINAL Y ESTADÍSTICAS ▶
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ====================================================================
-         SCREEN 7B: ENDING & AUDIT SCREEN
+         SCREEN 5: ENDING & AUDIT SCREEN (Tribunal Dossier)
          ==================================================================== -->
     <section id="ending-screen" class="screen">
       <div class="ending-box">
-        <div id="ending-title-badge" class="ending-title-badge">FINAL ALCANZADO</div>
         
-        <div class="ending-narrative" id="ending-narrative-text">
-          <!-- Populated dynamically -->
+        <!-- Top Official Dossier Header with Aster Seal -->
+        <div class="ending-top-seal">
+          <div class="ending-seal-icon-box">
+            <img src="assets/documents/aster_seal.jpg" alt="Sello República de Aster" class="ending-seal-img">
+          </div>
+          <div class="ending-header-text">
+            <div class="ending-kicker">REPÚBLICA DE ASTER // TRIBUNAL SUPREMO DE SEGURIDAD PERIMETRAL</div>
+            <div id="ending-title-badge" class="ending-title-badge">FINAL ALCANZADO</div>
+            <div class="ending-sub-serial">EXPEDIENTE FINAL DE AUDITORÍA DISCIPLINARIA // CASO OPERADOR ALBERTO</div>
+          </div>
+          <div class="ending-stamp-badge" id="ending-verdict-stamp">DICTAMEN OFICIAL</div>
+        </div>
+        
+        <!-- Two-column Dossier Main Body -->
+        <div class="ending-body-split">
+          
+          <!-- Left Column: Narrative Epilogue & Evaluation Rank -->
+          <div class="ending-col-narrative">
+            <div class="ending-section-label">RESOLUCIÓN DE LOS HECHOS // EPÍLOGO</div>
+            <div class="ending-narrative" id="ending-narrative-text">
+              <!-- Populated dynamically via narrative.js -->
+            </div>
+
+            <!-- Performance Ranking Card -->
+            <div class="ending-rank-card" id="ending-rank-card">
+              <div class="rank-card-header">
+                <span class="rank-indicator-label">EVALUACIÓN DE CONDUCTA CÍVICA</span>
+                <span class="rank-stamp-pill" id="ending-rank-badge">RANGO S</span>
+              </div>
+              <div class="rank-card-body">
+                <div class="rank-title" id="ending-rank-title">TÍTULO DE EVALUACIÓN</div>
+                <div class="rank-desc" id="ending-rank-desc">Descripción de la conducta del operador...</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Visual Metrics & Scorecard -->
+          <div class="ending-col-metrics">
+            <div class="ending-section-label">MÉTRICAS DEL SISTEMA // AUDITORÍA CUANTITATIVA</div>
+
+            <!-- 1. Admission vs Rejection Balance Meter -->
+            <div class="ending-meter-box">
+              <div class="meter-header">
+                <span class="meter-title">BALANCE DE DECISIONES</span>
+                <span class="meter-ratio" id="stat-ratio-label">0 ADM / 0 REC</span>
+              </div>
+              <div class="ending-balance-track">
+                <div class="balance-bar admit" id="balance-bar-admit" style="width: 50%;">
+                  <span class="bar-label" id="bar-label-admit">50% ADM</span>
+                </div>
+                <div class="balance-bar reject" id="balance-bar-reject" style="width: 50%;">
+                  <span class="bar-label" id="bar-label-reject">50% REC</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. LINA Algorithmic Compliance Meter -->
+            <div class="ending-meter-box">
+              <div class="meter-header">
+                <span class="meter-title">ALINEACIÓN CON ALGORITMO LINA</span>
+                <span class="meter-ratio" id="stat-lina-percent-label">0% CONCORDANCIA</span>
+              </div>
+              <div class="ending-compliance-track">
+                <div class="compliance-bar" id="meter-lina-compliance" style="width: 0%;"></div>
+              </div>
+              <div class="compliance-scale">
+                <span>AUTONOMÍA HUMANA (0%)</span>
+                <span>SUMISIÓN TOTAL (100%)</span>
+              </div>
+            </div>
+
+            <!-- 3. Key Stat Counters Grid -->
+            <div class="ending-stats-grid">
+              <div class="stat-item">
+                <span class="stat-label">PERSONAS ADMITIDAS:</span>
+                <span class="stat-val good" id="stat-admitted">0</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">PERSONAS RECHAZADAS:</span>
+                <span class="stat-val bad" id="stat-rejected">0</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">DICTÁMENES LINA SEGUIDOS:</span>
+                <span class="stat-val" id="stat-lina-followed">0 / 7</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">DICTÁMENES CUESTIONADOS:</span>
+                <span class="stat-val warn" id="stat-lina-questioned">0 / 7</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">RECHAZOS INJUSTIFICADOS:</span>
+                <span class="stat-val bad" id="stat-unjustified-rejects">0</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">ARCHIVOS SECRETOS HALLADOS:</span>
+                <span class="stat-val highlight" id="stat-secrets-found">0 / 2</span>
+              </div>
+            </div>
+
+          </div>
         </div>
 
-        <div class="ending-stats-grid">
-          <div class="stat-item">
-            <span class="stat-label">PERSONAS ADMITIDAS:</span>
-            <span class="stat-val good" id="stat-admitted">0</span>
+        <!-- Case-by-case Audit Ledger: Detailed breakdown of the 7 cases -->
+        <div class="ending-cases-section">
+          <div class="ending-cases-header">
+            <div class="cases-header-title-group">
+              <span class="cases-icon">📋</span>
+              <span>HISTORIAL DE LOS 7 CASOS PROCESADOS // ACTA INDIVIDUAL DE RESOLUCIÓN</span>
+            </div>
+            <span class="cases-header-sub">REGISTRO FORENSE CRONOLÓGICO</span>
           </div>
-          <div class="stat-item">
-            <span class="stat-label">PERSONAS RECHAZADAS:</span>
-            <span class="stat-val bad" id="stat-rejected">0</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">DICTÁMENES DE LINA SEGUIDOS:</span>
-            <span class="stat-val" id="stat-lina-followed">0 / 15</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">DICTÁMENES CUESTIONADOS:</span>
-            <span class="stat-val warn" id="stat-lina-questioned">0 / 15</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">RECHAZOS INJUSTIFICADOS:</span>
-            <span class="stat-val bad" id="stat-unjustified-rejects">0</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">ARCHIVOS SECRETOS HALLADOS:</span>
-            <span class="stat-val highlight" id="stat-secrets-found">0 / 2</span>
+          <div class="ending-cases-ledger" id="ending-cases-ledger">
+            <!-- Populated dynamically via ui.js with each case's outcome -->
           </div>
         </div>
 
-        <div style="display: flex; justify-content: flex-end; gap: 14px;">
-          <button id="btn-restart-ending" class="btn-pixel">INICIAR NUEVA PARTIDA</button>
+        <!-- Action Footer -->
+        <div class="ending-actions">
+          <div class="ending-footer-telemetry">
+            <span>REGISTRO ARCHIVADO EN LA BASE CENTRAL DE ASTER // CÓDIGO OPERADOR #4409</span>
+          </div>
+          <button id="btn-restart-ending" class="btn-pixel btn-action btn-restart-glow">
+            🔄 REINICIAR SERVICIO (NUEVA PARTIDA)
+          </button>
         </div>
+
       </div>
     </section>
 
@@ -406,61 +503,52 @@
          MODALS
          ==================================================================== -->
     
-    <!-- 1. Authentic Standardized Document Viewer Modal -->
+    <!-- 1. Document Viewer Modal -->
     <div id="doc-modal" class="modal-overlay">
-      <div class="doc-sheet" id="doc-sheet-container">
+      <div class="doc-sheet">
         <button class="modal-close-btn" title="Cerrar documento (Esc)">✕</button>
+        <div class="doc-sheet-watermark"></div>
         
         <div class="doc-header-seal">
+          <div class="doc-seal-graphic-box">
+            <img src="assets/documents/aster_seal.jpg" alt="Sello República de Aster" class="doc-seal-thumb">
+          </div>
           <div class="seal-title">
+            <div class="seal-republic-text">REPÚBLICA DE ASTER</div>
             <h3 id="modal-doc-title">Documento Oficial</h3>
             <span id="modal-doc-type">Tipo y Expediente</span>
           </div>
-          <div class="seal-republic">
-            <div style="font-size: 11px; font-weight: bold; color: #222c3d; letter-spacing: 1px;">REPÚBLICA DE ASTER</div>
-            <div style="font-size: 9px; color: #625c50;">DIRECCIÓN DE SEGURIDAD Y CONTROL</div>
+          <div class="doc-serial-tag">
+            <span>EXPEDIENTE CLASIFICADO</span>
+            <div class="doc-barcode-mini">||||||||||||||||||</div>
           </div>
         </div>
 
-        <div class="doc-body-layout">
-          <!-- Pixel Portrait for Identity Documents -->
-          <div class="doc-photo-area" id="doc-photo-area" style="display: none;">
-            <canvas id="modal-doc-photo" width="64" height="64"></canvas>
-            <span class="photo-seal-label">BIOMETRÍA OK</span>
-          </div>
-
-          <div class="doc-body-content" id="modal-doc-fields">
-            <!-- Fields inserted here -->
-          </div>
+        <div class="doc-body-content" id="modal-doc-fields">
+          <!-- Fields inserted here dynamically -->
         </div>
 
         <div class="doc-footer-meta">
-          <div class="doc-barcode" id="modal-doc-barcode">||||| | |||| ||| ||||| || ||||||</div>
+          <div class="doc-disclaimer">
+            VALIDEZ SUJETA A VERIFICACIÓN BIOMÉTRICA CONFORME AL PROTOCOLO DE ADMISIÓN FRONTERIZA DE ASTER.
+          </div>
           <div class="doc-stamp" id="modal-doc-stamp">SELLO OFICIAL</div>
         </div>
       </div>
     </div>
 
-    <!-- 2. Authentic Classified Research Dossier Modal -->
+    <!-- 2. Secret Archives Modal -->
     <div id="secret-modal" class="modal-overlay">
-      <div class="classified-dossier-box">
-        <button class="modal-close-btn" title="Cerrar expediente (Esc)">✕</button>
-        
-        <div class="classified-header">
-          <div class="classified-watermark">ESTRICTAMENTE CONFIDENCIAL // NIVEL 4</div>
-          <h2 id="secret-title-label">EXPEDIENTE RESERVADO INTERCEPTADO</h2>
-          <div class="classified-meta" id="secret-meta-line">
-            REGISTRO: EXP-SEC-AST-2026 // FECHA: 26/10/2026
-          </div>
+      <div class="terminal-secret-box">
+        <button class="modal-close-btn" title="Cerrar archivo (Esc)">✕</button>
+        <div class="secret-header-bar">
+          <span class="secret-alert-pip"></span>
+          <div class="secret-title" id="secret-title-label">ARCHIVO CONFIDENCIAL DESCLASIFICADO</div>
         </div>
-
-        <div class="classified-body" id="secret-body-content">
-          <!-- Structured classified sections populated here -->
-        </div>
-
-        <div class="classified-footer">
-          <div class="classified-stamp" id="secret-stamp-label">DOCUMENTO DESCLASIFICADO</div>
-          <div class="classified-hash">* HASH CRIPTOGRÁFICO SHA-256 VERIFICADO EN RED RAÍZ *</div>
+        <div class="secret-dossier-bar">MEMORIA INTERCEPTADA // DEPÓSITO RAÍZ DE LINA</div>
+        <pre class="secret-content" id="secret-body-content"></pre>
+        <div class="secret-footer-notice">
+          * Este registro ha sido almacenado permanentemente en tu cuaderno confidencial de incidencias.
         </div>
       </div>
     </div>
@@ -469,14 +557,41 @@
     <div id="help-modal" class="modal-overlay">
       <div class="help-card">
         <button class="modal-close-btn" title="Cerrar ayuda (Esc)">✕</button>
-        <h2>CÓMO JUGAR // MANUAL DEL PUESTO</h2>
-        <ul>
-          <li><strong>1. Estructura de las 7 fases:</strong> Cada visitante atraviesa 7 fases obligatorias (Presentación, Entrega de DNI, Explicación laboral, Entrega de Registro de trabajo, Motivo de entrada, Entrega de Certificado de seguridad, y Finalización). Use el botón <strong>[CONTINUAR]</strong> o la tecla <strong>[ESPACIO]</strong> para avanzar los diálogos a su propio ritmo.</li>
-          <li><strong>2. Entrega progresiva de documentos:</strong> Los 3 documentos obligatorios (<em>Documento de identidad</em>, <em>Registro de trabajo</em> y <em>Certificado de seguridad</em>) se colocan en su escritorio a medida que el visitante los entrega en las fases correspondientes. Pulse sobre ellos o las teclas <strong>[1, 2 o 3]</strong> para abrirlos e inspeccionarlos.</li>
-          <li><strong>3. Consulta a LINA [L]:</strong> Haga clic sobre el <strong>avatar interactivo de LINA</strong> en la terminal derecha (o pulse la tecla <strong>[L]</strong>) para activar el análisis biométrico, evaluar el riesgo (BAJO, MEDIO o ALTO) y recibir su dictamen.</li>
-          <li><strong>4. Alteración de la percepción:</strong> Esté atento a la cámara CAM-01. LINA puede alterar ópticamente los rostros e iluminación de los visitantes para influir en su decisión. Compare los datos de los 3 documentos contra la recomendación de la IA.</li>
-          <li><strong>5. Decisión irreversible:</strong> Una vez completadas las 7 fases, los botones <strong>[ADMITIR (A)]</strong> y <strong>[RECHAZAR (R)]</strong> quedarán habilitados. Toda decisión queda grabada en el acta y es definitiva.</li>
-          <li><strong>6. Cierre de jornada y conversación con el jefe:</strong> Al término de cada turno, accederá al informe institucional de estadísticas y mantendrá una entrevista en el despacho del supervisor José, cuyas reacciones cambiarán según sus decisiones reales.</li>
+        <div class="help-card-header">
+          <span class="help-icon">📖</span>
+          <h2>CÓMO JUGAR // MANUAL DEL PUESTO DE CONTROL</h2>
+        </div>
+        <ul class="help-list">
+          <li>
+            <div class="help-step-num">[1]</div>
+            <div class="help-step-text">
+              <strong>Inspección de personas y documentos:</strong> Cada persona presenta al menos 3 documentos oficiales (identificación, antecedentes, órdenes de trabajo, certificados médicos, etc.). Haz clic en ellos o pulsa las teclas <strong>[1], [2], [3] o [4]</strong> para leerlos con detenimiento.
+            </div>
+          </li>
+          <li>
+            <div class="help-step-num">[2]</div>
+            <div class="help-step-text">
+              <strong>Consulta a LINA [Tecla L]:</strong> Pulsa el botón del terminal para que la inteligencia artificial procese los datos biométricos y te asigne un nivel de riesgo (BAJO, MEDIO o ALTO) y una recomendación (ADMITIR o RECHAZAR).
+            </div>
+          </li>
+          <li>
+            <div class="help-step-num">[3]</div>
+            <div class="help-step-text">
+              <strong>Alteración de la percepción:</strong> Presta atención a la cámara CCTV. LINA puede alterar la iluminación, las sombras y la expresión de una persona tras la consulta para inducirte al rechazo. <em>¿Es realmente una amenaza o es la máquina manipulando tu juicio?</em>
+            </div>
+          </li>
+          <li>
+            <div class="help-step-num">[4]</div>
+            <div class="help-step-text">
+              <strong>Decisión irreversible:</strong> Elige entre <strong>ADMITIR [A]</strong> o <strong>RECHAZAR [R]</strong>. No hay segundas oportunidades. Tus decisiones determinan las vidas de las personas y te conducirán a uno de los <strong>cuatro finales posibles</strong>.
+            </div>
+          </li>
+          <li>
+            <div class="help-step-num">[5]</div>
+            <div class="help-step-text">
+              <strong>Atajos de teclado:</strong> [1-4] Abrir documentos | [L] Consultar a LINA | [A] Admitir | [R] Rechazar | [M] Silenciar audio | [Esc] Cerrar ventanas.
+            </div>
+          </li>
         </ul>
       </div>
     </div>
